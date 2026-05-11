@@ -2,88 +2,122 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ash AI Master - SECURE PANEL</title>
     <style>
-        body { background: #0a0a0a; color: #00ff00; font-family: 'Segoe UI', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { width: 400px; background: #111; padding: 30px; border: 2px solid #00ff00; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,0,0.1); }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; }
-        input { background: #1a1a1a; color: #0f0; outline: none; }
-        button { background: #00ff00; color: #000; font-weight: bold; cursor: pointer; border: none; }
-        #chat-box { height: 150px; background: #000; padding: 10px; overflow-y: auto; font-size: 0.8rem; border: 1px solid #222; margin-bottom: 10px; }
+        body { background: #0a0a0a; color: #00ff00; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .container { width: 400px; background: #111; padding: 30px; border: 2px solid #00ff00; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,0,0.1); text-align: center; }
+        h2 { margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; box-sizing: border-box; }
+        input { background: #1a1a1a; color: #0f0; outline: none; border: 1px solid #004400; }
+        button { background: #00ff00; color: #000; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
+        button:hover { background: #00cc00; box-shadow: 0 0 10px #00ff00; }
+        #chat-box { height: 180px; background: #000; padding: 10px; overflow-y: auto; font-size: 0.8rem; border: 1px solid #222; margin-bottom: 10px; text-align: left; color: #00cc00; }
+        .status-text { font-size: 0.7rem; color: #888; margin-top: 5px; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container" id="login-screen">
-    <h2 style="text-align: center;">SECURE LOGIN</h2>
+    <h2>SECURE LOGIN</h2>
     <input type="password" id="pass-input" placeholder="Enter Admin Password">
     <button onclick="checkPass()">UNLOCK ACCESS</button>
 </div>
 
 <div class="container hidden" id="main-panel">
-    <h2 style="text-align: center;">ASH COMMANDER</h2>
-    <div id="chat-box">--- Secure Connection Established ---</div>
-    <input type="text" id="cmdInput" placeholder="Command (e.g. Open Chrome)">
-    <button onclick="sendOrder()">EXECUTE ORDER</button>
-    <p id="status" style="font-size: 0.7rem; text-align: center; color: #888;">Status: Waiting...</p>
+    <h2>ASH COMMANDER</h2>
+    <div id="chat-box">--- Secure Connection Established ---<br>Ready for Arslan's Orders...</div>
+    <input type="text" id="cmdInput" placeholder="Order (e.g. Open Chrome)">
+    <button id="execBtn" onclick="sendOrder()">EXECUTE ORDER</button>
+    <p class="status-text" id="status">System Status: Online</p>
 </div>
 
 <script>
-    // --- SECURITY CONFIG ---
-    const MY_PASS = "MyHome@123"; // <--- Yahan APNA PASS likhein
-    const TOKEN = "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"; // <--- Yahan Token dalein
+    // --- CONFIGURATION (DHYAN SE BHAREIN) ---
+    const MY_PASS = "MyHome@123"; // Apni pasand ka password rakhein
+    const TOKEN = "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"; // <--- Apna naya GitHub Token yahan dalein
     const OWNER = "ASsHh11";
     const REPO = "Ash-Controller";
     const FILE = "command.txt";
 
+    // Login logic
     function checkPass() {
         const p = document.getElementById('pass-input').value;
         if(p === MY_PASS) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-panel').classList.remove('hidden');
         } else {
-            alert("Wrong Password! Access Denied.");
+            alert("Incorrect Password!");
         }
     }
 
+    // Command transmission logic
     async function sendOrder() {
         const input = document.getElementById('cmdInput');
-        const order = input.value;
+        const order = input.value.trim();
         const status = document.getElementById('status');
         const chat = document.getElementById('chat-box');
+        const btn = document.getElementById('execBtn');
 
         if(!order) return;
-        status.innerText = "Transmitting...";
+
+        // UI Updates
+        status.innerText = "Transmitting to GitHub...";
+        btn.disabled = true;
+        btn.style.background = "#555";
 
         try {
-            // Fetch SHA
+            // 1. Get current file SHA (GitHub requirement)
             const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
                 headers: { "Authorization": `token ${TOKEN}` }
             });
-            const data = await res.json();
             
-            // Push Update
-            const up = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
+            if (!res.ok) throw new Error("Could not find command.txt or Token is invalid");
+            
+            const data = await res.json();
+            const sha = data.sha;
+
+            // 2. Push new command
+            const updateRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
                 method: "PUT",
-                headers: { "Authorization": `token ${TOKEN}`, "Content-Type": "application/json" },
+                headers: { 
+                    "Authorization": `token ${TOKEN}`,
+                    "Content-Type": "application/json" 
+                },
                 body: JSON.stringify({
-                    message: "Secure Execution",
-                    content: btoa(order),
-                    sha: data.sha
+                    message: "Remote Command: " + order,
+                    content: btoa(order), // Convert to Base64
+                    sha: sha
                 })
             });
 
-            if(up.ok) {
-                chat.innerHTML += `<div>[${new Date().toLocaleTimeString()}] Sent: ${order}</div>`;
-                status.innerText = "Status: Executed on PC";
+            if(updateRes.ok) {
+                chat.innerHTML += `<div style="color:#fff">>> Sent: ${order}</div>`;
+                status.innerText = "Success: Order sent to PC!";
                 input.value = "";
+            } else {
+                throw new Error("GitHub update failed");
             }
+
         } catch(e) {
-            status.innerText = "Error! Connection Failed.";
+            console.error(e);
+            status.innerText = "Error: " + e.message;
+            chat.innerHTML += `<div style="color:red">!! Failed: ${e.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.style.background = "#00ff00";
+            chat.scrollTop = chat.scrollHeight;
         }
-        chat.scrollTop = chat.scrollHeight;
     }
+
+    // Allow Enter key to send
+    document.getElementById("cmdInput").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            sendOrder();
+        }
+    });
 </script>
+
 </body>
 </html>
