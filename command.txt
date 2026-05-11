@@ -1,1 +1,1 @@
-IDLE
+research Ghidra installation guide
