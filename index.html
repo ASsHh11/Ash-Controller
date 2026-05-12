@@ -2,107 +2,170 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARSLAN-ASH AI | ARCHITECT</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARSLAN-ASH AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #00ffcc; --bg: #000; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Montserrat', sans-serif; color: #fff; }
         
-        #vanta-bg { position: absolute; width: 100%; height: 100%; z-index: 1; }
+        #galaxy-canvas { position: absolute; width: 100%; height: 100%; z-index: 1; cursor: crosshair; }
 
-        /* Click Animation Circle */
-        .click-effect {
-            position: absolute; border: 2px solid var(--accent); border-radius: 50%;
-            transform: translate(-50%, -50%); pointer-events: none;
-            animation: ripple 0.6s ease-out; z-index: 999;
+        /* UI Header */
+        header { position: fixed; top: 20px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
+        header h1 { font-size: 1.5rem; letter-spacing: 10px; color: var(--accent); font-weight: 600; text-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
+
+        /* Sidebar Logic */
+        .sidebar { 
+            position: fixed; left: 0; top: 0; height: 100%; width: 320px; 
+            background: rgba(5,5,5,0.85); backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0,255,204,0.1); z-index: 150;
+            padding: 30px; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        @keyframes ripple { from { width: 0; height: 0; opacity: 1; } to { width: 100px; height: 100px; opacity: 0; } }
-
-        .ui-container {
-            position: relative; z-index: 10; display: flex; height: 100vh; width: 100vw;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
+        .sidebar.hidden { transform: translateX(-100%); }
+        
+        /* Toggle Button */
+        .toggle-btn {
+            position: absolute; right: -40px; top: 50%; width: 40px; height: 60px;
+            background: rgba(0, 255, 204, 0.1); border: 1px solid rgba(0,255,204,0.2);
+            color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            border-radius: 0 10px 10px 0; backdrop-filter: blur(10px);
         }
 
-        /* Responsive Layout */
-        @media (max-width: 900px) { .ui-container { flex-direction: column; overflow-y: auto; } .sidebar { width: 100% !important; height: auto !important; } }
+        /* Viewport & Chat */
+        .viewport-box { width: 100%; background: #000; border: 1px solid #111; margin-top: 50px; overflow: hidden; position: relative; }
+        #pc-view { width: 100%; display: none; }
+        #terminal { height: 300px; overflow-y: auto; margin: 20px 0; scrollbar-width: none; font-size: 0.85rem; line-height: 1.6; }
+        
+        .msg { margin-bottom: 15px; border-left: 1px solid var(--accent); padding-left: 10px; animation: fadeIn 0.5s; }
+        
+        .input-wrap { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; z-index: 200; display: flex; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(0,255,204,0.3); border-radius: 50px; padding: 5px; }
+        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 15px 25px; outline: none; font-size: 1rem; }
+        .send-btn { background: var(--accent); color: #000; border: none; padding: 0 25px; border-radius: 50px; cursor: pointer; font-weight: bold; }
 
-        .sidebar { width: 350px; background: rgba(5,5,5,0.8); border-right: 1px solid rgba(0,255,204,0.1); padding: 30px; display: flex; flex-direction: column; }
-        .logo { font-size: 1.2rem; letter-spacing: 5px; color: var(--accent); margin-bottom: 40px; font-weight: 600; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .chat-zone { flex-grow: 1; display: flex; flex-direction: column; padding: 30px; }
-        #terminal { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; scrollbar-width: none; }
-        .msg { margin-bottom: 20px; animation: slideIn 0.4s ease; }
-        .user-label { color: #444; font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
-        .ai-text { border-left: 2px solid var(--accent); padding-left: 15px; font-size: 0.95rem; line-height: 1.6; font-weight: 300; }
-
-        .viewport { width: 100%; max-width: 500px; margin: 0 auto 20px auto; background: #000; border: 1px solid #111; overflow: hidden; }
-        #live-frame { width: 100%; display: none; }
-
-        .input-wrap { display: flex; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,255,204,0.2); padding: 5px; border-radius: 5px; }
-        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 15px; outline: none; font-size: 1rem; }
-        .send-btn { background: var(--accent); color: #000; border: none; padding: 0 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .send-btn:hover { background: #fff; }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        /* Mobile specific adjustments */
+        @media (max-width: 600px) {
+            .sidebar { width: 85%; }
+            header h1 { font-size: 1.1rem; letter-spacing: 5px; }
+        }
     </style>
 </head>
-<body id="vanta-bg">
+<body>
 
-<div class="ui-container">
-    <div class="sidebar">
-        <div class="logo">ARSLAN-ASH AI</div>
-        <div class="viewport">
-            <img id="live-frame" src="">
-            <div id="no-signal" style="padding:40px; text-align:center; color:#222; font-size:0.7rem;">NO VISUAL LINK</div>
-        </div>
-        <p style="font-size: 0.6rem; color: #333; text-align: center;">V5.0 ARCHITECT EDITION</p>
+<canvas id="galaxy-canvas"></canvas>
+
+<header>
+    <h1>ARSLAN-ASH AI</h1>
+</header>
+
+<div class="sidebar" id="sidebar">
+    <button class="toggle-btn" onclick="toggleSidebar()">❯</button>
+    
+    <div class="viewport-box">
+        <img id="pc-view" src="">
+        <div id="status-tag" style="padding:40px; text-align:center; color:#222; font-size:0.6rem; letter-spacing:2px;">PC TELEMETRY OFF</div>
     </div>
 
-    <div class="chat-zone">
-        <div id="terminal">
-            <div class="msg"><div class="ai-text">System Online. Neural interface interactive.</div></div>
-        </div>
-        <div class="input-wrap">
-            <input type="text" id="userInput" placeholder="EXECUTE COMMAND..." autocomplete="off">
-            <button class="send-btn" onclick="fire()">RUN</button>
-        </div>
+    <div id="terminal">
+        <div class="msg">Interface Synchronized. Operational in deep space.</div>
     </div>
+</div>
+
+<div class="input-wrap">
+    <input type="text" id="userInput" placeholder="COMMAND GALAXY..." autocomplete="off">
+    <button class="send-btn" onclick="execute()">RUN</button>
 </div>
 
 <script>
     const DB = "https://sh-controller-default-rtdb.firebaseio.com/";
+    const canvas = document.getElementById('galaxy-canvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let scale = 1;
+    let mouse = { x: 0, y: 0 };
 
-    // 1. Interactive Background (Net Animation)
-    VANTA.NET({
-        el: "#vanta-bg", mouseControls: true, touchControls: true,
-        gyroControls: false, minHeight: 200.0, minWidth: 200.0,
-        scale: 1.0, scaleMobile: 1.0, color: 0x00ffcc,
-        backgroundColor: 0x0, points: 15.0, maxDistance: 20.0, spacing: 16.0
+    // --- 1. GALAXY ENGINE ---
+    function initGalaxy() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        stars = [];
+        for(let i=0; i<400; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2,
+                baseX: Math.random() * canvas.width,
+                baseY: Math.random() * canvas.height,
+                color: i % 10 === 0 ? '#00ffcc' : '#fff'
+            });
+        }
+    }
+
+    function drawGalaxy() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+        
+        stars.forEach((s, i) => {
+            // Interactive Wires
+            let dx = mouse.x - s.x;
+            let dy = mouse.y - s.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if(dist < 150) {
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(mouse.x, mouse.y);
+                ctx.stroke();
+            }
+
+            // Draw Stars with Zoom Scale
+            ctx.fillStyle = s.color;
+            let zoomX = (s.x - canvas.width/2) * scale + canvas.width/2;
+            let zoomY = (s.y - canvas.height/2) * scale + canvas.height/2;
+            let currentSize = s.size * scale;
+            
+            if(currentSize > 0.5) {
+                ctx.beginPath();
+                ctx.arc(zoomX, zoomY, currentSize > 5 ? 5 : currentSize, 0, Math.PI*2);
+                ctx.fill();
+            }
+        });
+        requestAnimationFrame(drawGalaxy);
+    }
+
+    // --- 2. INTERACTIVE ZOOM & CLICK ---
+    window.addEventListener('wheel', e => {
+        scale += e.deltaY * -0.001;
+        scale = Math.min(Math.max(0.5, scale), 20); // Infinite zoom feel
     });
 
-    // 2. Click/Tap Animation
-    document.addEventListener('mousedown', function(e) {
-        let ripple = document.createElement('div');
-        ripple.className = 'click-effect';
-        ripple.style.left = e.pageX + 'px';
-        ripple.style.top = e.pageY + 'px';
-        document.body.appendChild(ripple);
-        setTimeout(() => { ripple.remove(); }, 600);
+    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    
+    // Breaking Wires on Click
+    window.addEventListener('mousedown', () => {
+        stars.forEach(s => {
+            if(Math.abs(mouse.x - s.x) < 50) s.x += (Math.random() - 0.5) * 200;
+        });
     });
 
-    // 3. Execution Logic
-    async function fire() {
+    // --- 3. SIDEBAR LOGIC ---
+    function toggleSidebar() {
+        const sb = document.getElementById('sidebar');
+        sb.classList.toggle('hidden');
+        document.querySelector('.toggle-btn').innerText = sb.classList.contains('hidden') ? '❯' : '❮';
+    }
+
+    // --- 4. EXECUTION ---
+    async function execute() {
         const inp = document.getElementById('userInput');
         const val = inp.value.trim();
         if(!val) return;
         const ts = Date.now();
-        
         const term = document.getElementById('terminal');
-        term.innerHTML += `<div class="msg"><div class="user-label">${val}</div><div id="res-${ts}" class="ai-text">Analysing...</div></div>`;
+        term.innerHTML += `<div class="msg"><span style="color:#555">REQ:</span> ${val}</div>`;
         inp.value = "";
         term.scrollTop = 99999;
 
@@ -111,18 +174,21 @@
         const sync = setInterval(async () => {
             const r = await fetch(`${DB}current.json`).then(d => d.json());
             if(r.time == ts && r.resp !== "PENDING") {
-                document.getElementById(`res-${ts}`).innerText = r.resp;
+                term.innerHTML += `<div class="msg"><span style="color:var(--accent)">AI:</span> ${r.resp}</div>`;
                 if(r.img) {
-                    const frame = document.getElementById('live-frame');
+                    const frame = document.getElementById('pc-view');
                     frame.src = r.img;
                     frame.style.display = 'block';
-                    document.getElementById('no-signal').style.display = 'none';
+                    document.getElementById('status-tag').style.display = 'none';
                 }
                 clearInterval(sync);
             }
         }, 1000);
     }
-    document.getElementById('userInput').addEventListener('keypress', e => e.key === 'Enter' && fire());
+
+    initGalaxy();
+    drawGalaxy();
+    window.onresize = initGalaxy;
 </script>
 </body>
 </html>
