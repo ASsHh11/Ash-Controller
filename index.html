@@ -2,187 +2,168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARSLAN-ASH AI | SUPREME COCKPIT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARSLAN-ASH AI | IMPERIAL COCKPIT</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        :root { --crystal: #00f2ff; --glass: rgba(0, 10, 20, 0.4); }
+        :root { --crystal: #7dd3fc; --glass: rgba(10, 25, 41, 0.4); --border: rgba(125, 211, 252, 0.2); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Montserrat', sans-serif; color: #fff; }
         
-        /* Background Galaxy Engine */
-        #galaxy-container { position: absolute; inset: 0; z-index: 1; pointer-events: all; }
-        canvas { display: block; }
+        #canvas-container { position: absolute; inset: 0; z-index: 1; }
 
-        /* Arslan-Ash AI Header */
-        .top-nav { position: fixed; top: 20px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
-        .top-nav h1 { font-family: 'Cinzel', serif; font-size: 1.5rem; letter-spacing: 12px; color: var(--crystal); text-shadow: 0 0 30px rgba(0, 242, 255, 0.6); }
+        /* UI Header */
+        .top-bar { position: fixed; top: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
+        .top-bar h1 { font-family: 'Cinzel', serif; font-size: 1.2rem; letter-spacing: 8px; color: var(--crystal); text-shadow: 0 0 15px var(--crystal); }
 
-        /* Liquid Glass Panels */
+        /* Glass Panels */
         .glass-panel {
-            position: fixed; background: var(--glass); backdrop-filter: blur(25px);
-            border: 1px solid rgba(0, 242, 255, 0.1); border-radius: 20px; z-index: 150;
-            padding: 20px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 50px rgba(0,0,0,1);
+            position: fixed; background: var(--glass); backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 10px; z-index: 150;
+            padding: 20px; box-shadow: 0 0 40px rgba(0,0,0,0.8); transition: 0.5s;
         }
-        .glass-panel.hidden { transform: scale(0.8); opacity: 0; pointer-events: none; }
+        .glass-panel.hidden { opacity: 0; transform: scale(0.9); pointer-events: none; }
 
-        .left-side { left: 20px; top: 100px; bottom: 120px; width: 350px; }
-        .right-side { right: 20px; top: 100px; width: 320px; }
+        .left-panel { left: 20px; top: 80px; bottom: 120px; width: 380px; display: flex; flex-direction: column; }
+        .right-panel { right: 20px; top: 80px; width: 320px; }
 
-        /* Toggle Switches */
-        .ctrl-tab {
-            position: fixed; left: 0; top: 50%; width: 35px; height: 100px; 
-            background: rgba(0, 242, 255, 0.1); border: 1px solid var(--crystal);
-            z-index: 200; cursor: pointer; display: flex; align-items: center; 
-            justify-content: center; border-radius: 0 10px 10px 0; color: var(--crystal);
-            font-size: 1.2rem; transition: 0.3s;
+        /* Telemetry */
+        .viewport-container { width: 100%; height: 200px; background: #000; border: 1px solid var(--border); border-radius: 50%; overflow: hidden; position: relative; margin-top: 10px; box-shadow: inset 0 0 20px var(--crystal); }
+        #pc-view { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .panel-label { font-size: 0.6rem; letter-spacing: 3px; color: var(--crystal); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 10px; display: block; }
+
+        #chat-log { flex-grow: 1; overflow-y: auto; scrollbar-width: none; font-size: 0.85rem; padding-right: 5px; }
+        .entry { margin-bottom: 15px; border-left: 2px solid var(--crystal); padding-left: 15px; line-height: 1.5; }
+
+        /* Control Hub */
+        .bottom-hub {
+            position: fixed; bottom: 0; width: 100%; height: 100px; 
+            background: linear-gradient(to top, rgba(0,0,0,1), transparent);
+            display: flex; align-items: center; justify-content: center; z-index: 100;
         }
-        .ctrl-tab:hover { background: var(--crystal); color: #000; }
-
-        /* Telemetry & Output */
-        .viewport { width: 100%; height: 180px; background: #000; border-radius: 15px; border: 1px solid rgba(0, 242, 255, 0.2); overflow: hidden; margin-top: 10px; }
-        #pc-frame { width: 100%; height: 100%; object-fit: cover; display: none; }
-        
-        #log-stream { flex-grow: 1; overflow-y: auto; scrollbar-width: none; font-size: 0.85rem; padding-top: 15px; }
-        .entry { margin-bottom: 12px; border-left: 2px solid var(--crystal); padding-left: 15px; animation: slide 0.4s; }
-        .label { font-size: 0.6rem; letter-spacing: 2px; color: var(--crystal); text-transform: uppercase; display: block; margin-bottom: 4px; }
-
-        /* Executive Input */
-        .command-hub {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 850px; z-index: 100;
-            background: rgba(0, 242, 255, 0.03); backdrop-filter: blur(30px);
-            border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 50px;
-            display: flex; padding: 8px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        .input-bar {
+            width: 90%; max-width: 1000px; background: var(--glass); border: 1px solid var(--border);
+            border-radius: 5px; display: flex; padding: 5px; backdrop-filter: blur(10px);
         }
-        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 12px 25px; outline: none; font-size: 1rem; }
-        .run-btn { background: var(--crystal); color: #000; border: none; padding: 0 40px; border-radius: 40px; cursor: pointer; font-weight: bold; letter-spacing: 2px; transition: 0.3s; }
-        .run-btn:hover { background: #fff; box-shadow: 0 0 30px #fff; }
+        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 10px 20px; outline: none; font-size: 1rem; }
+        .btn-grp { display: flex; gap: 10px; }
+        .btn { background: rgba(125, 211, 252, 0.1); border: 1px solid var(--crystal); color: var(--crystal); padding: 8px 20px; cursor: pointer; font-size: 0.7rem; font-weight: bold; letter-spacing: 2px; }
+        .btn:hover { background: var(--crystal); color: #000; box-shadow: 0 0 20px var(--crystal); }
 
-        @keyframes slide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; } }
+        .toggle-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; color: var(--crystal); font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-<div id="galaxy-container"></div>
+<div id="canvas-container"></div>
 
-<div class="top-nav"><h1>ARSLAN-ASH AI</h1></div>
+<div class="top-bar">
+    <h1>ARSLAN-ASH AI | IMPERIAL GALAXY</h1>
+</div>
 
-<div class="ctrl-tab" onclick="toggleAll()">❮</div>
-
-<div class="glass-panel left-side" id="panel-l">
-    <span class="label">NEURAL_HISTORY</span>
-    <div id="log-stream">
-        <div class="entry">System initialized. Galaxy Map Calibrated.</div>
+<div class="glass-panel left-panel" id="panel-l">
+    <div class="toggle-btn" onclick="toggle('panel-l')">[-]</div>
+    <span class="panel-label">HISTORY LOG (V5.0)</span>
+    <div id="chat-log">
+        <div class="entry">NEURAL PATH V3: ACTIVE<br>SYSTEM CALIBRATED. FULL DEEP-SPACE SCAN ACTIVE.</div>
     </div>
 </div>
 
-<div class="glass-panel right-side" id="panel-r">
-    <span class="label">LIVE_TELEMETRY</span>
-    <div class="viewport">
-        <img id="pc-frame" src="">
-        <div id="no-sig" style="display:flex; height:100%; align-items:center; justify-content:center; color:#111; font-size:0.6rem; letter-spacing:4px;">LINK_IDLE</div>
+<div class="glass-panel right-panel" id="panel-r">
+    <div class="toggle-btn" onclick="toggle('panel-r')">[-]</div>
+    <span class="panel-label">LIVE_TELEMETRY</span>
+    <div class="viewport-container">
+        <img id="pc-view" src="">
+        <div id="idle-msg" style="display:flex; height:100%; align-items:center; justify-content:center; color:#1e293b; font-size:0.5rem; letter-spacing:4px;">PC VIEW - [OK]</div>
     </div>
 </div>
 
-<div class="command-hub">
-    <input type="text" id="cmd-input" placeholder="Initiate neural link..." autocomplete="off">
-    <button class="run-btn" onclick="execute()">RUN</button>
+<div class="bottom-hub">
+    <div class="input-bar">
+        <input type="text" id="cmd" placeholder="Command the Core..." autocomplete="off">
+        <div class="btn-grp">
+            <button class="btn" onclick="zoom(0.8)">ZOOM -</button>
+            <button class="btn" onclick="zoom(1.2)">ZOOM +</button>
+            <button class="btn" style="background: var(--crystal); color: #000;" onclick="execute()">EXECUTE</button>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
     const DB = "https://sh-controller-default-rtdb.firebaseio.com/";
-    let scene, camera, renderer, galaxy;
-    let scale = 1, rotationSpeed = 0.001;
+    let scene, camera, renderer, particles;
+    let targetScale = 1;
 
-    // --- REALISTIC GALAXY ENGINE (No Dots) ---
-    function initGalaxy() {
+    function init() {
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000);
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 10000);
+        camera.position.z = 1000;
+
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('galaxy-container').appendChild(renderer.domElement);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        const starGeo = new THREE.BufferGeometry();
-        const starCount = 3000;
-        const pos = new Float32Array(starCount * 3);
-        const colors = new Float32Array(starCount * 3);
+        // Galaxy Generation
+        const geo = new THREE.BufferGeometry();
+        const count = 10000;
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
 
-        for(let i=0; i<starCount; i++) {
+        for(let i=0; i<count; i++) {
             let arm = i % 3;
-            let angle = (i / starCount) * Math.PI * 12 + (arm * (Math.PI * 2 / 3));
-            let dist = Math.pow(Math.random(), 0.5) * 500;
-            pos[i*3] = Math.cos(angle) * dist + (Math.random()-0.5)*50;
-            pos[i*3+1] = (Math.random()-0.5)*20;
-            pos[i*3+2] = Math.sin(angle) * dist + (Math.random()-0.5)*50;
+            let angle = (i / count) * Math.PI * 15 + (arm * (Math.PI * 2 / 3));
+            let dist = Math.pow(Math.random(), 0.5) * 800;
+            positions[i*3] = Math.cos(angle) * dist + (Math.random()-0.5)*40;
+            positions[i*3+1] = (Math.random()-0.5)*30;
+            positions[i*3+2] = Math.sin(angle) * dist + (Math.random()-0.5)*40;
             
-            colors[i*3] = 0; colors[i*3+1] = 0.95; colors[i*3+2] = 1; // Crystal Blue stars
+            colors[i*3] = 0.5; colors[i*3+1] = 0.8; colors[i*3+2] = 1.0;
         }
 
-        starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        
-        const starMat = new THREE.PointsMaterial({ 
-            size: 1.5, vertexColors: true, transparent: true, opacity: 0.8,
-            blending: THREE.AdditiveBlending 
-        });
-        
-        galaxy = new THREE.Points(starGeo, starMat);
-        scene.add(galaxy);
-        camera.position.z = 800;
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const mat = new THREE.PointsMaterial({ size: 2, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.6 });
+        particles = new THREE.Points(geo, mat);
+        scene.add(particles);
     }
 
     function animate() {
         requestAnimationFrame(animate);
-        galaxy.rotation.y += rotationSpeed;
-        galaxy.scale.set(scale, scale, scale);
+        particles.rotation.y += 0.001;
+        particles.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
         renderer.render(scene, camera);
     }
 
-    // Interactive Zoom
-    window.addEventListener('wheel', (e) => {
-        scale += e.deltaY * -0.001;
-        scale = Math.max(0.5, Math.min(scale, 100));
-    });
-
-    // Toggle Panels
-    function toggleAll() {
-        const p1 = document.getElementById('panel-l');
-        const p2 = document.getElementById('panel-r');
-        const tab = document.querySelector('.ctrl-tab');
-        p1.classList.toggle('hidden');
-        p2.classList.toggle('hidden');
-        tab.innerText = p1.classList.contains('hidden') ? '❯' : '❮';
-    }
+    function zoom(amt) { targetScale *= amt; targetScale = Math.min(Math.max(0.2, targetScale), 50); }
+    function toggle(id) { document.getElementById(id).classList.toggle('hidden'); }
 
     async function execute() {
-        const inp = document.getElementById('cmd-input');
+        const inp = document.getElementById('cmd');
         const val = inp.value.trim(); if(!val) return;
         const ts = Date.now();
-        const stream = document.getElementById('log-stream');
-        stream.innerHTML += `<div class="entry"><span class="label">REQUEST</span>${val}</div>`;
+        const log = document.getElementById('chat-log');
+        log.innerHTML += `<div class="entry"><span style="color:#64748b; font-size:0.6rem;">REQ:</span><br>${val}</div>`;
         inp.value = "";
-        
+
         await fetch(`${DB}current.json`, { method: "PUT", body: JSON.stringify({ cmd: val, time: ts, resp: "PENDING", img: "" }) });
-        
-        const poll = setInterval(async () => {
+
+        const poller = setInterval(async () => {
             const r = await fetch(`${DB}current.json`).then(d => d.json());
             if(r.time == ts && r.resp !== "PENDING") {
-                stream.innerHTML += `<div class="entry"><span class="label">RESPONSE</span>${r.resp}</div>`;
+                log.innerHTML += `<div class="entry"><span style="color:var(--crystal); font-size:0.6rem;">ASH_AI:</span><br>${r.resp}</div>`;
                 if(r.img) {
-                    const img = document.getElementById('pc-frame');
+                    const img = document.getElementById('pc-view');
                     img.src = r.img; img.style.display = 'block';
-                    document.getElementById('no-sig').style.display = 'none';
+                    document.getElementById('idle-msg').style.display = 'none';
                 }
-                stream.scrollTop = 99999;
-                clearInterval(poll);
+                log.scrollTop = 99999;
+                clearInterval(poller);
             }
         }, 1000);
     }
 
-    initGalaxy(); animate();
+    init(); animate();
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
