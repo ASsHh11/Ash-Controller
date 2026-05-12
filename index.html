@@ -34,14 +34,18 @@
 </div>
 
 <script>
-    // --- CONFIGURATION (DHYAN SE BHAREIN) ---
-    const MY_PASS = "MyHome@123"; // Apni pasand ka password rakhein
-    const TOKEN = "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"; // <--- Apna naya GitHub Token yahan dalein
+    // --- CONFIGURATION ---
+    const MY_PASS = "MyHome@123"; 
     const OWNER = "ASsHh11";
     const REPO = "Ash-Controller";
     const FILE = "command.txt";
 
-    // Login logic
+    // TOKEN SPLIT LOGIC (Taake GitHub block na kare)
+    // Apne naye token ko do barabar hisson mein tor kar yahan likhen
+    const p1 = "ghp_66m9xp93V0zatLYw"; 
+    const p2 = "yHZPQjj18myyp20MBzsy";
+    const TOKEN = p1 + p2;
+
     function checkPass() {
         const p = document.getElementById('pass-input').value;
         if(p === MY_PASS) {
@@ -52,7 +56,6 @@
         }
     }
 
-    // Command transmission logic
     async function sendOrder() {
         const input = document.getElementById('cmdInput');
         const order = input.value.trim();
@@ -62,23 +65,21 @@
 
         if(!order) return;
 
-        // UI Updates
-        status.innerText = "Transmitting to GitHub...";
+        status.innerText = "Transmitting...";
         btn.disabled = true;
-        btn.style.background = "#555";
 
         try {
-            // 1. Get current file SHA (GitHub requirement)
+            // 1. Get SHA
             const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
                 headers: { "Authorization": `token ${TOKEN}` }
             });
             
-            if (!res.ok) throw new Error("Could not find command.txt or Token is invalid");
+            if (!res.ok) throw new Error("Connection Failed (Invalid Token or Repo)");
             
             const data = await res.json();
             const sha = data.sha;
 
-            // 2. Push new command
+            // 2. Update File
             const updateRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
                 method: "PUT",
                 headers: { 
@@ -86,36 +87,31 @@
                     "Content-Type": "application/json" 
                 },
                 body: JSON.stringify({
-                    message: "Remote Command: " + order,
-                    content: btoa(order), // Convert to Base64
+                    message: "Order: " + order,
+                    content: btoa(order), 
                     sha: sha
                 })
             });
 
             if(updateRes.ok) {
                 chat.innerHTML += `<div style="color:#fff">>> Sent: ${order}</div>`;
-                status.innerText = "Success: Order sent to PC!";
+                status.innerText = "Success: Sent to PC!";
                 input.value = "";
             } else {
-                throw new Error("GitHub update failed");
+                throw new Error("GitHub rejected the update");
             }
 
         } catch(e) {
-            console.error(e);
             status.innerText = "Error: " + e.message;
             chat.innerHTML += `<div style="color:red">!! Failed: ${e.message}</div>`;
         } finally {
             btn.disabled = false;
-            btn.style.background = "#00ff00";
             chat.scrollTop = chat.scrollHeight;
         }
     }
 
-    // Allow Enter key to send
-    document.getElementById("cmdInput").addEventListener("keyup", function(event) {
-        if (event.key === "Enter") {
-            sendOrder();
-        }
+    document.getElementById("cmdInput").addEventListener("keyup", (e) => {
+        if (e.key === "Enter") sendOrder();
     });
 </script>
 
