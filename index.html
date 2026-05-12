@@ -3,152 +3,888 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARSLAN-ASH AI | SUPREME COCKPIT</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@300;600&display=swap" rel="stylesheet">
-    
+    <title>ARSLAN-ASH AI | IMPERIAL GALAXY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --cyan: #00d9ff; --glass: rgba(0, 5, 10, 0.8); --border: rgba(0, 217, 255, 0.2); }
+        :root { 
+            --cyan: #00d9ff; 
+            --cyan-glow: rgba(0, 217, 255, 0.3);
+            --glass: rgba(0, 10, 20, 0.7); 
+            --border: rgba(0, 217, 255, 0.2);
+            --gold: #ffb700;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Rajdhani', sans-serif; color: #fff; }
+        body, html { 
+            height: 100%; width: 100%; overflow: hidden; 
+            background: #000; 
+            font-family: 'Rajdhani', sans-serif; 
+            color: #fff;
+        }
 
-        canvas { position: absolute; inset: 0; z-index: 1; display: block; }
+        #galaxy-canvas { position: absolute; inset: 0; z-index: 1; cursor: move; }
 
-        /* UI Structure */
-        .header { position: fixed; top: 0; width: 100%; height: 80px; z-index: 100; text-align: center; padding-top: 20px; background: linear-gradient(to bottom, #000, transparent); }
-        .header h1 { font-family: 'Orbitron', sans-serif; color: var(--cyan); letter-spacing: 8px; text-shadow: 0 0 20px var(--cyan); font-size: 1.4rem; }
+        /* Top Header */
+        .supreme-header { 
+            position: fixed; top: 0; width: 100%; height: 90px; 
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%); 
+            z-index: 100; text-align: center; padding-top: 20px;
+        }
+        .supreme-header h1 { 
+            font-family: 'Orbitron', monospace; 
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            letter-spacing: clamp(3px, 2vw, 10px); 
+            color: var(--cyan); 
+            text-shadow: 0 0 30px var(--cyan), 0 0 50px var(--cyan);
+            font-weight: 900;
+        }
+        .supreme-header .subtitle {
+            font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+            letter-spacing: 4px;
+            color: #666;
+            margin-top: 5px;
+        }
 
-        .panel { position: fixed; background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 10px; z-index: 150; padding: 20px; transition: 0.5s; box-shadow: 0 0 30px #000; }
-        .panel.hidden { opacity: 0; transform: translateX(-100%); pointer-events: none; }
+        /* Glass Panels */
+        .panel { 
+            position: fixed; 
+            background: var(--glass); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            z-index: 150;
+            padding: 15px; 
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,217,255,0.05);
+        }
+        .panel.hidden { 
+            opacity: 0; 
+            transform: translateX(-100%) scale(0.9); 
+            pointer-events: none; 
+        }
 
-        .l-panel { left: 20px; top: 100px; bottom: 140px; width: 350px; display: flex; flex-direction: column; }
-        .r-panel { right: 20px; top: 100px; width: 300px; }
-
-        .viewport { width: 100%; height: 200px; border: 2px solid var(--cyan); border-radius: 50%; overflow: hidden; position: relative; margin: 15px 0; background: #000; box-shadow: inset 0 0 20px var(--cyan); }
-        #pc-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .left-panel { 
+            left: 15px; 
+            top: 110px; 
+            bottom: 150px; 
+            width: clamp(300px, 30vw, 440px); 
+            display: flex; 
+            flex-direction: column; 
+        }
         
-        #log { flex-grow: 1; overflow-y: auto; scrollbar-width: none; font-size: 0.8rem; margin-top: 10px; }
-        .log-line { margin-bottom: 10px; border-left: 2px solid var(--cyan); padding-left: 10px; animation: fadeIn 0.5s; }
-        .tag { font-size: 0.6rem; color: var(--cyan); letter-spacing: 2px; display: block; }
+        .right-panel { 
+            right: 15px; 
+            top: 110px; 
+            width: clamp(280px, 25vw, 350px);
+        }
 
-        .input-hub { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 800px; z-index: 200; background: rgba(0,0,0,0.8); border: 1px solid var(--border); border-radius: 50px; display: flex; padding: 8px; }
-        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 10px 20px; outline: none; font-size: 1rem; font-family: 'Rajdhani', sans-serif; }
-        .btn { background: var(--cyan); color: #000; border: none; padding: 0 30px; border-radius: 30px; cursor: pointer; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
-        .btn:hover { box-shadow: 0 0 20px var(--cyan); transform: scale(1.05); }
+        .panel-header { 
+            font-size: 0.65rem; 
+            color: var(--cyan); 
+            letter-spacing: 3px; 
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
 
-        .toggle { position: fixed; left: 0; top: 50%; width: 35px; height: 80px; background: rgba(0,217,255,0.1); border: 1px solid var(--cyan); border-radius: 0 10px 10px 0; z-index: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--cyan); }
+        .status-indicator {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+            animation: pulse 2s infinite;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* History Log */
+        #history-log { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            scrollbar-width: thin;
+            scrollbar-color: var(--cyan) transparent;
+            font-size: 0.8rem; 
+            line-height: 1.6;
+        }
+        #history-log::-webkit-scrollbar { width: 4px; }
+        #history-log::-webkit-scrollbar-track { background: transparent; }
+        #history-log::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+
+        .log-entry { 
+            margin-bottom: 15px; 
+            border-left: 2px solid var(--cyan); 
+            padding-left: 12px;
+            opacity: 0;
+            animation: fadeInLog 0.5s forwards;
+        }
+        @keyframes fadeInLog {
+            to { opacity: 1; }
+        }
+
+        .log-tag { 
+            font-size: 0.6rem; 
+            color: var(--cyan); 
+            letter-spacing: 2px; 
+            display: block; 
+            margin-bottom: 4px; 
+        }
+        .log-content { color: #ccc; }
+
+        /* Telemetry Orb */
+        .telemetry-container {
+            margin: 15px 0;
+        }
+        .telemetry-orb { 
+            width: 100%; 
+            height: 220px; 
+            background: radial-gradient(circle at center, rgba(0,50,80,0.3), #000); 
+            border: 2px solid var(--cyan); 
+            border-radius: 50%; 
+            position: relative;
+            box-shadow: 
+                inset 0 0 50px rgba(0, 217, 255, 0.2),
+                0 0 30px rgba(0, 217, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .telemetry-orb:hover {
+            border-color: #fff;
+            box-shadow: 
+                inset 0 0 60px rgba(0, 217, 255, 0.4),
+                0 0 50px var(--cyan);
+            transform: scale(1.02);
+        }
+        
+        .orb-inner {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent);
+            animation: orbPulse 3s infinite;
+        }
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .orb-status {
+            position: relative;
+            z-index: 2;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan);
+        }
+
+        #pc-view-img {
+            width: 100%; height: 100%; object-fit: cover;
+            display: none; position: absolute; top: 0; left: 0;
+            z-index: 5;
+            border-radius: 50%;
+        }
+
+        /* Bottom Status Bar */
+        .status-bar {
+            position: fixed;
+            bottom: 100px;
+            left: 0;
+            width: 100%;
+            height: 45px;
+            background: linear-gradient(90deg, rgba(255,183,0,0.15), rgba(255,183,0,0.05), rgba(255,183,0,0.15));
+            border-top: 1px solid var(--gold);
+            border-bottom: 1px solid var(--gold);
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: var(--gold);
+            text-shadow: 0 0 15px var(--gold);
+        }
+
+        /* Command Deck */
+        .command-deck { 
+            position: fixed; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 90%; 
+            max-width: 900px; 
+            z-index: 100;
+            background: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border); 
+            border-radius: 50px;
+            display: flex; 
+            padding: 8px 15px; 
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.9), 0 0 20px var(--cyan-glow);
+        }
+        
+        .command-input { 
+            flex-grow: 1; 
+            background: transparent; 
+            border: none; 
+            color: #fff; 
+            padding: 12px 20px; 
+            outline: none; 
+            font-size: 0.9rem;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .command-input::placeholder {
+            color: #555;
+            letter-spacing: 1px;
+        }
+
+        .cmd-btn { 
+            background: rgba(0, 217, 255, 0.1); 
+            border: 1px solid var(--cyan); 
+            color: var(--cyan); 
+            padding: 10px 20px; 
+            border-radius: 30px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            letter-spacing: 1px; 
+            font-size: 0.7rem; 
+            transition: all 0.3s;
+            font-family: 'Rajdhani', sans-serif;
+            white-space: nowrap;
+        }
+        .cmd-btn:hover { 
+            background: var(--cyan); 
+            color: #000; 
+            box-shadow: 0 0 25px var(--cyan);
+            transform: translateY(-2px);
+        }
+        .cmd-btn:active {
+            transform: translateY(0);
+        }
+        .cmd-btn.primary {
+            background: var(--cyan);
+            color: #000;
+        }
+
+        /* Toggle Button */
+        .panel-toggle { 
+            position: fixed; 
+            left: 0; 
+            top: 50%; 
+            transform: translateY(-50%);
+            width: 35px; 
+            height: 80px; 
+            background: rgba(0,217,255,0.1); 
+            z-index: 200; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--cyan); 
+            border-radius: 0 8px 8px 0; 
+            border: 1px solid var(--cyan); 
+            border-left: none;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+        }
+        .panel-toggle:hover {
+            background: rgba(0,217,255,0.2);
+            width: 40px;
+        }
+
+        /* Zoom Indicator */
+        .zoom-indicator {
+            position: fixed;
+            bottom: 160px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 0.7rem;
+            color: var(--cyan);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .zoom-indicator.show {
+            opacity: 1;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .left-panel { width: 85vw; bottom: 180px; }
+            .right-panel { 
+                right: 50%; 
+                transform: translateX(50%); 
+                top: auto; 
+                bottom: 180px; 
+                width: 85vw; 
+            }
+            .command-deck { width: 95%; flex-wrap: wrap; border-radius: 20px; }
+            .cmd-btn { padding: 8px 15px; font-size: 0.65rem; }
+            .status-bar { bottom: 130px; font-size: 0.65rem; }
+        }
+
+        /* Galaxy Object Labels */
+        .space-object-label {
+            position: absolute;
+            color: var(--cyan);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            pointer-events: none;
+            z-index: 50;
+            text-shadow: 0 0 10px var(--cyan);
+            font-family: 'Rajdhani', sans-serif;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,217,255,0.3);
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
 
-<div class="header"><h1>ARSLAN-ASH AI</h1></div>
-<div class="toggle" onclick="toggleUI()">❮</div>
+<canvas id="galaxy-canvas"></canvas>
 
-<div class="panel l-panel" id="l-p">
-    <span class="tag">NEURAL_HISTORY</span>
-    <div id="log"><div class="log-line">System Online. Galaxy Map Calibrated.</div></div>
+<!-- Space Object Labels -->
+<div class="space-object-label" id="label-black-hole-1" style="display:none;">Black Hole [X-0]</div>
+<div class="space-object-label" id="label-black-hole-2" style="display:none;">Black Hole [X-1]</div>
+<div class="space-object-label" id="label-white-hole-1" style="display:none;">White Hole [0-X]</div>
+<div class="space-object-label" id="label-white-hole-2" style="display:none;">White Hole [0-Y]</div>
+
+<div class="zoom-indicator" id="zoom-indicator">Zoom: 100%</div>
+
+<div class="supreme-header">
+    <h1>ARSLAN-ASH AI | IMPERIAL GALAXY</h1>
+    <div class="subtitle">(V5.0 NEURAL GALAXY)</div>
 </div>
 
-<div class="panel r-panel" id="r-p">
-    <span class="tag">LIVE_TELEMETRY</span>
-    <div class="viewport">
-        <img id="pc-img" src="">
-        <div id="status" style="display:flex; height:100%; align-items:center; justify-content:center; color:#222; font-size:0.6rem; letter-spacing:3px;">LINK_READY</div>
+<div class="panel-toggle" onclick="togglePanels()">❮</div>
+
+<div class="panel left-panel" id="left-panel">
+    <div class="panel-header">
+        <span>HISTORY LOG (V5.0)</span>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span style="font-size: 0.6rem;">23.09.2023</span>
+        </div>
+    </div>
+    <div id="history-log">
+        <div class="log-entry">
+            <span class="log-tag">SYSTEM_INIT</span>
+            <div class="log-content">Neural Path Synchronized. Imperial Galaxy Online.</div>
+        </div>
     </div>
 </div>
 
-<div class="input-hub">
-    <input type="text" id="cmd" placeholder="Execute Neural Command..." autocomplete="off">
-    <button class="btn" onclick="execute()">RUN</button>
+<div class="panel right-panel" id="right-panel">
+    <div class="panel-header">
+        <span>LIVE_TELEMETRY</span>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+        </div>
+    </div>
+    <div class="telemetry-container">
+        <div class="telemetry-orb" onclick="activateTelemetry()">
+            <div class="orb-inner"></div>
+            <div class="orb-status" id="orb-status">PC View - [OK]</div>
+            <img id="pc-view-img" src="" alt="">
+        </div>
+    </div>
 </div>
 
+<div class="status-bar">
+    MASTER CORE V5.0 - OPERATIONAL | STATUS: NEURAL SYNC [OK]
+</div>
+
+<div class="command-deck">
+    <input type="text" class="command-input" id="cmd-input" placeholder="Command the Core..." autocomplete="off">
+    <button class="cmd-btn" onclick="runCommand()">RUN</button>
+    <button class="cmd-btn primary" onclick="executeCommand()">EXECUTE</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-    const DB = "https://sh-controller-default-rtdb.firebaseio.com/";
-    let scene, camera, renderer, galaxy, zoom = 1;
+    const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/";
+    
+    let scene, camera, renderer, galaxyPoints;
+    let targetZoom = 1;
+    let mouseX = 0, mouseY = 0;
+    let isMouseDown = false;
+    let rotationX = 0, rotationY = 0;
+    
+    // Black holes and white holes
+    let blackHoles = [];
+    let whiteHoles = [];
+    let spaceObjects = [];
 
-    // --- Start only when window is ready ---
-    window.onload = () => {
-        init();
-        animate();
-    };
-
-    function init() {
+    // Initialize Galaxy
+    function initGalaxy() {
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 5000);
+        
+        camera = new THREE.PerspectiveCamera(
+            60, 
+            window.innerWidth / window.innerHeight, 
+            1, 
+            5000
+        );
         camera.position.set(0, 500, 1200);
+        camera.lookAt(0, 0, 0);
 
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer = new THREE.WebGLRenderer({ 
+            canvas: document.getElementById('galaxy-canvas'),
+            antialias: true, 
+            alpha: true 
+        });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+        renderer.setPixelRatio(window.devicePixelRatio);
 
-        // Realistic Spiral Galaxy
-        const geo = new THREE.BufferGeometry();
-        const count = 20000;
-        const pos = new Float32Array(count * 3);
-        const cols = new Float32Array(count * 3);
-
-        for(let i=0; i<count; i++) {
-            let arm = i % 5;
-            let angle = (i / count) * Math.PI * 18 + (arm * (Math.PI * 2 / 5));
-            let dist = Math.pow(Math.random(), 0.5) * 900;
-            pos[i*3] = Math.cos(angle) * dist + (Math.random()-0.5)*60;
-            pos[i*3+1] = (Math.random()-0.5) * 50;
-            pos[i*3+2] = Math.sin(angle) * dist + (Math.random()-0.5)*60;
-            
-            let color = new THREE.Color(i % 15 === 0 ? 0x00d9ff : 0xffffff);
-            cols[i*3] = color.r; cols[i*3+1] = color.g; cols[i*3+2] = color.b;
-        }
-
-        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-        const mat = new THREE.PointsMaterial({ size: 2, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.8 });
-        galaxy = new THREE.Points(geo, mat);
-        scene.add(galaxy);
+        createSpiralGalaxy();
+        createBlackHoles();
+        createWhiteHoles();
+        addAmbientParticles();
+        
+        animate();
     }
 
+    // Create Realistic Spiral Galaxy
+    function createSpiralGalaxy() {
+        const geometry = new THREE.BufferGeometry();
+        const particleCount = 30000;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const sizes = new Float32Array(particleCount);
+
+        for(let i = 0; i < particleCount; i++) {
+            const spiralArm = i % 5;
+            const angleOffset = (spiralArm * Math.PI * 2) / 5;
+            const spiralFactor = i / particleCount;
+            const angle = spiralFactor * Math.PI * 20 + angleOffset;
+            
+            const radius = Math.pow(Math.random(), 0.6) * 900;
+            const spread = (Math.random() - 0.5) * 100 * (1 - spiralFactor);
+            
+            positions[i * 3] = Math.cos(angle) * radius + spread;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * (100 - radius / 10);
+            positions[i * 3 + 2] = Math.sin(angle) * radius + spread;
+
+            const distFromCenter = radius / 900;
+            if (Math.random() > 0.7 || radius < 200) {
+                colors[i * 3] = 0;
+                colors[i * 3 + 1] = 0.8 + Math.random() * 0.2;
+                colors[i * 3 + 2] = 1;
+            } else {
+                const brightness = 0.6 + Math.random() * 0.4;
+                colors[i * 3] = brightness;
+                colors[i * 3 + 1] = brightness;
+                colors[i * 3 + 2] = 1;
+            }
+
+            sizes[i] = Math.random() * 2 + 0.5;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        const material = new THREE.PointsMaterial({
+            size: 2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true
+        });
+
+        galaxyPoints = new THREE.Points(geometry, material);
+        scene.add(galaxyPoints);
+
+        // Central glow
+        const glowGeometry = new THREE.SphereGeometry(50, 32, 32);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00d9ff,
+            transparent: true,
+            opacity: 0.3,
+            blending: THREE.AdditiveBlending
+        });
+        const glowSphere = new THREE.Mesh(glowGeometry, glowMaterial);
+        scene.add(glowSphere);
+    }
+
+    // Create Black Holes
+    function createBlackHoles() {
+        const positions = [
+            { x: -600, y: -50, z: -400, label: 'label-black-hole-1' },
+            { x: 650, y: 30, z: 500, label: 'label-black-hole-2' }
+        ];
+
+        positions.forEach((pos, index) => {
+            // Black hole sphere
+            const geometry = new THREE.SphereGeometry(25, 32, 32);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                transparent: true,
+                opacity: 1
+            });
+            const blackHole = new THREE.Mesh(geometry, material);
+            blackHole.position.set(pos.x, pos.y, pos.z);
+            scene.add(blackHole);
+
+            // Accretion disk
+            const diskGeometry = new THREE.RingGeometry(30, 70, 64);
+            const diskMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff6600,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending
+            });
+            const disk = new THREE.Mesh(diskGeometry, diskMaterial);
+            disk.position.set(pos.x, pos.y, pos.z);
+            disk.rotation.x = Math.PI / 2;
+            scene.add(disk);
+
+            // Event horizon glow
+            const glowGeometry = new THREE.SphereGeometry(28, 32, 32);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff3300,
+                transparent: true,
+                opacity: 0.3,
+                blending: THREE.AdditiveBlending
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.set(pos.x, pos.y, pos.z);
+            scene.add(glow);
+
+            blackHoles.push({ mesh: blackHole, disk, glow, label: pos.label });
+        });
+    }
+
+    // Create White Holes
+    function createWhiteHoles() {
+        const positions = [
+            { x: 400, y: 80, z: -600, label: 'label-white-hole-1' },
+            { x: -500, y: -100, z: 550, label: 'label-white-hole-2' }
+        ];
+
+        positions.forEach((pos, index) => {
+            // White hole sphere
+            const geometry = new THREE.SphereGeometry(20, 32, 32);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            });
+            const whiteHole = new THREE.Mesh(geometry, material);
+            whiteHole.position.set(pos.x, pos.y, pos.z);
+            scene.add(whiteHole);
+
+            // Emission ring
+            const ringGeometry = new THREE.RingGeometry(25, 45, 64);
+            const ringMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.7,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending
+            });
+            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.position.set(pos.x, pos.y, pos.z);
+            ring.rotation.x = Math.PI / 2;
+            scene.add(ring);
+
+            // Outer glow
+            const glowGeometry = new THREE.SphereGeometry(23, 32, 32);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00d9ff,
+                transparent: true,
+                opacity: 0.4,
+                blending: THREE.AdditiveBlending
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.set(pos.x, pos.y, pos.z);
+            scene.add(glow);
+
+            whiteHoles.push({ mesh: whiteHole, ring, glow, label: pos.label });
+        });
+    }
+
+    // Add background stars
+    function addAmbientParticles() {
+        const geometry = new THREE.BufferGeometry();
+        const count = 3000;
+        const positions = new Float32Array(count * 3);
+
+        for(let i = 0; i < count; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 3000;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 3000;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 3000;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 1,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.4
+        });
+
+        const stars = new THREE.Points(geometry, material);
+        scene.add(stars);
+    }
+
+    // Update object labels on screen
+    function updateLabels() {
+        const allObjects = [...blackHoles, ...whiteHoles];
+        
+        allObjects.forEach(obj => {
+            const label = document.getElementById(obj.label);
+            if (!label) return;
+
+            const vector = obj.mesh.position.clone();
+            vector.project(camera);
+
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+
+            // Check if object is in front of camera
+            if (vector.z < 1) {
+                label.style.left = x + 'px';
+                label.style.top = y + 'px';
+                label.style.display = 'block';
+            } else {
+                label.style.display = 'none';
+            }
+        });
+    }
+
+    // Animation Loop
     function animate() {
         requestAnimationFrame(animate);
-        galaxy.rotation.y += 0.001;
-        camera.position.z = THREE.MathUtils.lerp(camera.position.z, 1200 / zoom, 0.05);
+
+        // Galaxy rotation
+        galaxyPoints.rotation.y += 0.0005;
+        
+        // Mouse drag rotation
+        if (!isMouseDown) {
+            rotationX *= 0.95;
+            rotationY *= 0.95;
+        }
+        galaxyPoints.rotation.x += rotationX * 0.001;
+        galaxyPoints.rotation.y += rotationY * 0.001;
+
+        // Black hole animations
+        blackHoles.forEach((bh, i) => {
+            bh.disk.rotation.z += 0.01 + i * 0.002;
+            bh.glow.rotation.y += 0.005;
+            const pulse = Math.sin(Date.now() * 0.001 + i) * 0.1 + 1;
+            bh.glow.scale.set(pulse, pulse, pulse);
+        });
+
+        // White hole animations
+        whiteHoles.forEach((wh, i) => {
+            wh.ring.rotation.z -= 0.008 + i * 0.002;
+            wh.glow.rotation.y -= 0.005;
+            const pulse = Math.sin(Date.now() * 0.0015 + i) * 0.15 + 1;
+            wh.glow.scale.set(pulse, pulse, pulse);
+        });
+
+        // Smooth zoom
+        camera.position.z = THREE.MathUtils.lerp(
+            camera.position.z, 
+            1200 / targetZoom, 
+            0.05
+        );
+        camera.position.y = THREE.MathUtils.lerp(
+            camera.position.y,
+            500 / targetZoom,
+            0.05
+        );
+
+        updateLabels();
         renderer.render(scene, camera);
     }
 
-    function toggleUI() {
-        document.getElementById('l-p').classList.toggle('hidden');
-        document.getElementById('r-p').classList.toggle('hidden');
-    }
-
-    async function execute() {
-        const inp = document.getElementById('cmd');
-        const val = inp.value.trim(); if(!val) return;
-        const ts = Date.now();
-        const log = document.getElementById('log');
-        log.innerHTML += `<div class="log-line"><span class="tag">REQUEST</span>${val}</div>`;
-        inp.value = "";
-
-        await fetch(`${DB}current.json`, { method: "PUT", body: JSON.stringify({ cmd: val, time: ts, resp: "PENDING", img: "" }) });
-
-        const sync = setInterval(async () => {
-            const r = await fetch(`${DB}current.json`).then(d => d.json());
-            if(r.time == ts && r.resp !== "PENDING") {
-                log.innerHTML += `<div class="log-line"><span class="tag" style="color:#fff">AI</span>${r.resp}</div>`;
-                if(r.img) {
-                    const img = document.getElementById('pc-img');
-                    img.src = r.img; img.style.display = 'block';
-                    document.getElementById('status').style.display = 'none';
-                }
-                log.scrollTop = 99999;
-                clearInterval(sync);
-            }
+    // Mouse wheel zoom
+    let zoomTimeout;
+    document.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        targetZoom *= delta;
+        targetZoom = Math.max(0.3, Math.min(targetZoom, 3));
+        
+        // Show zoom indicator
+        const indicator = document.getElementById('zoom-indicator');
+        indicator.textContent = `Zoom: ${Math.round(targetZoom * 100)}%`;
+        indicator.classList.add('show');
+        
+        clearTimeout(zoomTimeout);
+        zoomTimeout = setTimeout(() => {
+            indicator.classList.remove('show');
         }, 1000);
+    }, { passive: false });
+
+    // Mouse drag to rotate
+    document.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            rotationY = (e.clientX - mouseX) * 0.5;
+            rotationX = (e.clientY - mouseY) * 0.5;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isMouseDown = false;
+    });
+
+    // Touch support for mobile
+    let touchStartX = 0, touchStartY = 0;
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isMouseDown = true;
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (isMouseDown && e.touches.length > 0) {
+            rotationY = (e.touches[0].clientX - touchStartX) * 0.3;
+            rotationX = (e.touches[0].clientY - touchStartY) * 0.3;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }
+    });
+
+    document.addEventListener('touchend', () => {
+        isMouseDown = false;
+    });
+
+    // Toggle Panels
+    let panelsVisible = true;
+    function togglePanels() {
+        panelsVisible = !panelsVisible;
+        document.getElementById('left-panel').classList.toggle('hidden');
+        document.getElementById('right-panel').classList.toggle('hidden');
+        document.querySelector('.panel-toggle').innerText = panelsVisible ? '❮' : '❯';
     }
 
-    window.onresize = () => {
-        camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+    // Telemetry Activation
+    function activateTelemetry() {
+        const orb = document.querySelector('.telemetry-orb');
+        orb.style.transform = 'scale(1.05)';
+        setTimeout(() => orb.style.transform = 'scale(1)', 300);
+    }
+
+    // Command Execution
+    async function executeCommand() {
+        const input = document.getElementById('cmd-input');
+        const cmd = input.value.trim();
+        if (!cmd) return;
+
+        const timestamp = Date.now();
+        const logArea = document.getElementById('history-log');
+        
+        logArea.innerHTML += `
+            <div class="log-entry">
+                <span class="log-tag">REQUEST</span>
+                <div class="log-content">${cmd}</div>
+            </div>
+        `;
+        input.value = "";
+        logArea.scrollTop = logArea.scrollHeight;
+
+        try {
+            await fetch(`${DB_URL}current.json`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    cmd: cmd,
+                    time: timestamp,
+                    resp: "PENDING",
+                    img: ""
+                })
+            });
+
+            let attempts = 0;
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                const response = await fetch(`${DB_URL}current.json`);
+                const data = await response.json();
+                
+                if (data && data.time == timestamp && data.resp !== "PENDING") {
+                    clearInterval(pollInterval);
+                    
+                    logArea.innerHTML += `
+                        <div class="log-entry">
+                            <span class="log-tag">AI_ENGINE</span>
+                            <div class="log-content">${data.resp}</div>
+                        </div>
+                    `;
+                    
+                    if (data.img) {
+                        const imgEl = document.getElementById('pc-view-img');
+                        imgEl.src = data.img;
+                        imgEl.style.display = 'block';
+                        document.getElementById('orb-status').style.display = 'none';
+                    }
+                    logArea.scrollTop = logArea.scrollHeight;
+                }
+                
+                if (attempts > 30) {
+                    clearInterval(pollInterval);
+                    console.log("System Timeout: AI Worker not responding.");
+                }
+            }, 1000);
+        } catch (error) {
+            console.error('Connection Failed:', error);
+        }
+    }
+
+    function runCommand() {
+        executeCommand();
+    }
+
+    // Enter key execute
+    document.getElementById('cmd-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') executeCommand();
+    });
+
+    // Window Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-    };
+    });
+
+    // Initialize
+    initGalaxy();
 </script>
 </body>
 </html>
