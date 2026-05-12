@@ -3,76 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASH AI - CORE INTERFACE</title>
+    <title>ARSLAN-ASH AI ASSISTANT</title>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <style>
-        :root { --neon: #00ff00; --bg: #050505; --dark: #111; }
-        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .panel { width: 500px; background: rgba(10,10,10,0.95); border: 1px solid var(--neon); border-radius: 2px; padding: 25px; box-shadow: 0 0 25px rgba(0,255,0,0.1); position: relative; }
-        .panel::before { content: "MASTER CONTROL UNIT v4.0"; position: absolute; top: -12px; left: 20px; background: var(--bg); padding: 0 10px; font-size: 0.7rem; letter-spacing: 2px; }
-        #output { height: 250px; background: #000; border: 1px solid #222; margin-bottom: 20px; padding: 15px; overflow-y: auto; font-size: 0.85rem; line-height: 1.5; color: #fff; border-radius: 2px; scrollbar-width: thin; }
-        .ai-msg { color: var(--neon); margin-bottom: 10px; border-left: 2px solid var(--neon); padding-left: 10px; }
-        .user-msg { color: #888; margin-bottom: 10px; text-align: right; font-style: italic; }
-        input { width: 100%; background: #000; border: 1px solid #444; color: var(--neon); padding: 15px; box-sizing: border-box; outline: none; margin-bottom: 15px; font-size: 1rem; transition: 0.3s; }
-        input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,255,0,0.2); }
-        button { width: 100%; background: var(--neon); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
-        button:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
-        .loader { height: 2px; width: 0%; background: var(--neon); transition: 0.4s; margin-bottom: 10px; }
+        :root { --glow: #00ffcc; --bg: #000505; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg); font-family: 'Orbitron', sans-serif; color: white; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        #particles-js { position: absolute; width: 100%; height: 100%; z-index: 1; }
+        
+        .main-frame {
+            position: relative; z-index: 2; width: 90%; max-width: 500px;
+            background: rgba(0, 20, 20, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 20px;
+            padding: 30px; box-shadow: 0 0 50px rgba(0, 255, 204, 0.1);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        h1 { font-size: 1.2rem; text-align: center; letter-spacing: 4px; color: var(--glow); text-shadow: 0 0 10px var(--glow); margin-bottom: 20px; }
+        
+        #display {
+            height: 250px; overflow-y: auto; background: rgba(0,0,0,0.4);
+            border-radius: 10px; padding: 15px; margin-bottom: 20px;
+            font-family: 'Consolas', monospace; font-size: 0.9rem; border-left: 3px solid var(--glow);
+        }
+
+        .msg-ai { color: var(--glow); margin-bottom: 15px; animation: fadeIn 0.5s; }
+        .msg-user { color: #aaa; text-align: right; margin-bottom: 15px; font-style: italic; }
+
+        .input-group { position: relative; }
+        input {
+            width: 100%; background: transparent; border: 1px solid rgba(0,255,204,0.5);
+            padding: 15px; border-radius: 30px; color: white; outline: none;
+            transition: 0.3s; padding-right: 60px;
+        }
+        input:focus { border-color: var(--glow); box-shadow: 0 0 15px rgba(0,255,204,0.3); }
+
+        button {
+            position: absolute; right: 5px; top: 5px; width: 45px; height: 45px;
+            background: var(--glow); border: none; border-radius: 50%;
+            cursor: pointer; font-weight: bold; font-size: 1.2rem; transition: 0.3s;
+        }
+        button:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--glow); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--glow); }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="panel">
-    <div id="output">
-        <div class="ai-msg">ASH AI: Awaiting Neural Link... Master Arslan, I am ready.</div>
+<div id="particles-js"></div>
+
+<div class="main-frame">
+    <h1>ARSLAN-ASH AI</h1>
+    <div id="display">
+        <div class="msg-ai">SYSTEM: Neural link established. Master Arslan, awaiting your command...</div>
     </div>
-    <div id="load-bar" class="loader"></div>
-    <input type="text" id="cmdInput" placeholder="Command or Question..." autocomplete="off">
-    <button id="execBtn" onclick="sendOrder()">Execute Link</button>
+    
+    <div class="input-group">
+        <input type="text" id="userInput" placeholder="Speak to the Core..." autocomplete="off">
+        <button onclick="trigger()">⚡</button>
+    </div>
 </div>
 
 <script>
     const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/.json";
 
-    async function sendOrder() {
-        const input = document.getElementById('cmdInput');
-        const order = input.value.trim();
-        const output = document.getElementById('output');
-        const loadBar = document.getElementById('load-bar');
+    // Particles Animation Config
+    particlesJS("particles-js", {
+        "particles": {
+            "number": { "value": 80 },
+            "color": { "value": "#00ffcc" },
+            "shape": { "type": "circle" },
+            "opacity": { "value": 0.5 },
+            "size": { "value": 2 },
+            "line_linked": { "enable": true, "distance": 150, "color": "#00ffcc", "opacity": 0.4, "width": 1 },
+            "move": { "enable": true, "speed": 2 }
+        },
+        "interactivity": {
+            "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } }
+        }
+    });
 
-        if(!order) return;
+    async function trigger() {
+        const input = document.getElementById('userInput');
+        const display = document.getElementById('display');
+        const val = input.value.trim();
+        if(!val) return;
 
-        // UI Action
-        output.innerHTML += `<div class="user-msg">> ${order}</div>`;
-        loadBar.style.width = "100%";
+        display.innerHTML += `<div class="msg-user">>> ${val}</div>`;
         input.value = "";
-        output.scrollTop = output.scrollHeight;
+        display.scrollTop = display.scrollHeight;
 
         try {
             await fetch(DB_URL, {
                 method: "PUT",
-                body: JSON.stringify({ command: order, time: Date.now(), response: "processing..." })
+                body: JSON.stringify({ command: val, time: Date.now(), response: "analyzing..." })
             });
 
-            // Start Polling for AI Response
-            let checkCount = 0;
-            const poll = setInterval(async () => {
+            const poller = setInterval(async () => {
                 const res = await fetch(DB_URL);
                 const data = await res.json();
-                if(data.response && data.response !== "processing...") {
-                    output.innerHTML += `<div class="ai-msg">ASH: ${data.response}</div>`;
-                    output.scrollTop = output.scrollHeight;
-                    loadBar.style.width = "0%";
-                    clearInterval(poll);
+                if(data.response && data.response !== "analyzing...") {
+                    display.innerHTML += `<div class="msg-ai">CORE: ${data.response}</div>`;
+                    display.scrollTop = display.scrollHeight;
+                    clearInterval(poller);
                 }
-                if(checkCount++ > 20) clearInterval(poll); // Timeout after 20s
             }, 1000);
-
-        } catch (e) {
-            output.innerHTML += `<div style="color:red">!! LINK ERROR: ${e.message}</div>`;
-        }
+        } catch(e) { console.error("Link severed."); }
     }
 
-    document.getElementById("cmdInput").addEventListener("keyup", (e) => { if (e.key === "Enter") sendOrder(); });
+    document.getElementById('userInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') trigger(); });
 </script>
 
 </body>
