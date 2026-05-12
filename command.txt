@@ -1,1 +1,1 @@
-IDLE
+open chrome
