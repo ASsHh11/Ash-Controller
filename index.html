@@ -2,84 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ARSLAN-ASH AI | IMPERIAL CORE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARSLAN-ASH AI | ARCHITECT</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #D4AF37; --bg: #030303; }
+        :root { --accent: #00ffcc; --bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; height: 100vh; overflow: hidden; }
+        body, html { height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Montserrat', sans-serif; color: #fff; }
         
-        .elite-header { padding: 30px; text-align: center; border-bottom: 1px solid #111; }
-        .logo { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.8rem; letter-spacing: 8px; }
+        #vanta-bg { position: absolute; width: 100%; height: 100%; z-index: 1; }
 
-        .dashboard { display: grid; grid-template-columns: 1fr 400px; height: calc(100vh - 100px); }
-        
-        .main-display { padding: 40px; display: flex; flex-direction: column; border-right: 1px solid #111; }
-        #output-stream { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; scrollbar-width: none; }
-        .msg { margin-bottom: 25px; animation: fadeIn 1s ease; }
-        .ai-text { color: #fff; font-size: 1.1rem; line-height: 1.6; border-left: 1px solid var(--gold); padding-left: 20px; }
-        .user-text { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
-        
-        .visual-viewport { background: #080808; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .pc-screen { width: 100%; border: 1px solid #222; box-shadow: 0 0 50px rgba(0,0,0,1); }
-        .view-label { color: var(--gold); font-size: 0.6rem; letter-spacing: 3px; margin-bottom: 15px; }
+        /* Click Animation Circle */
+        .click-effect {
+            position: absolute; border: 2px solid var(--accent); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+            animation: ripple 0.6s ease-out; z-index: 999;
+        }
+        @keyframes ripple { from { width: 0; height: 0; opacity: 1; } to { width: 100px; height: 100px; opacity: 0; } }
 
-        .input-area { position: fixed; bottom: 0; width: 100%; background: #050505; padding: 20px 40px; border-top: 1px solid #111; display: flex; align-items: center; }
-        input { flex-grow: 1; background: transparent; border: none; color: #fff; font-size: 1.2rem; outline: none; }
-        .btn-exec { background: var(--gold); color: #000; border: none; padding: 10px 40px; font-weight: bold; cursor: pointer; letter-spacing: 2px; transition: 0.3s; }
-        .btn-exec:hover { filter: brightness(1.2); box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+        .ui-container {
+            position: relative; z-index: 10; display: flex; height: 100vh; width: 100vw;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Responsive Layout */
+        @media (max-width: 900px) { .ui-container { flex-direction: column; overflow-y: auto; } .sidebar { width: 100% !important; height: auto !important; } }
+
+        .sidebar { width: 350px; background: rgba(5,5,5,0.8); border-right: 1px solid rgba(0,255,204,0.1); padding: 30px; display: flex; flex-direction: column; }
+        .logo { font-size: 1.2rem; letter-spacing: 5px; color: var(--accent); margin-bottom: 40px; font-weight: 600; text-align: center; }
+
+        .chat-zone { flex-grow: 1; display: flex; flex-direction: column; padding: 30px; }
+        #terminal { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; scrollbar-width: none; }
+        .msg { margin-bottom: 20px; animation: slideIn 0.4s ease; }
+        .user-label { color: #444; font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
+        .ai-text { border-left: 2px solid var(--accent); padding-left: 15px; font-size: 0.95rem; line-height: 1.6; font-weight: 300; }
+
+        .viewport { width: 100%; max-width: 500px; margin: 0 auto 20px auto; background: #000; border: 1px solid #111; overflow: hidden; }
+        #live-frame { width: 100%; display: none; }
+
+        .input-wrap { display: flex; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,255,204,0.2); padding: 5px; border-radius: 5px; }
+        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 15px; outline: none; font-size: 1rem; }
+        .send-btn { background: var(--accent); color: #000; border: none; padding: 0 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .send-btn:hover { background: #fff; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
-<body>
+<body id="vanta-bg">
 
-<div class="elite-header"><div class="logo">ARSLAN-ASH AI</div></div>
-
-<div class="dashboard">
-    <div class="main-display">
-        <div id="output-stream"></div>
+<div class="ui-container">
+    <div class="sidebar">
+        <div class="logo">ARSLAN-ASH AI</div>
+        <div class="viewport">
+            <img id="live-frame" src="">
+            <div id="no-signal" style="padding:40px; text-align:center; color:#222; font-size:0.7rem;">NO VISUAL LINK</div>
+        </div>
+        <p style="font-size: 0.6rem; color: #333; text-align: center;">V5.0 ARCHITECT EDITION</p>
     </div>
-    <div class="visual-viewport">
-        <div class="view-label">LIVE_TELEMETRY</div>
-        <img id="pc-frame" class="pc-screen" src="https://via.placeholder.com/1920x1080/080808/080808" alt="PC View">
-    </div>
-</div>
 
-<div class="input-area">
-    <input type="text" id="cmd" placeholder="COMMAND YOUR SYSTEM..." autocomplete="off">
-    <button class="btn-exec" onclick="send()">EXECUTE</button>
+    <div class="chat-zone">
+        <div id="terminal">
+            <div class="msg"><div class="ai-text">System Online. Neural interface interactive.</div></div>
+        </div>
+        <div class="input-wrap">
+            <input type="text" id="userInput" placeholder="EXECUTE COMMAND..." autocomplete="off">
+            <button class="send-btn" onclick="fire()">RUN</button>
+        </div>
+    </div>
 </div>
 
 <script>
     const DB = "https://sh-controller-default-rtdb.firebaseio.com/";
 
-    async function send() {
-        const inp = document.getElementById('cmd');
+    // 1. Interactive Background (Net Animation)
+    VANTA.NET({
+        el: "#vanta-bg", mouseControls: true, touchControls: true,
+        gyroControls: false, minHeight: 200.0, minWidth: 200.0,
+        scale: 1.0, scaleMobile: 1.0, color: 0x00ffcc,
+        backgroundColor: 0x0, points: 15.0, maxDistance: 20.0, spacing: 16.0
+    });
+
+    // 2. Click/Tap Animation
+    document.addEventListener('mousedown', function(e) {
+        let ripple = document.createElement('div');
+        ripple.className = 'click-effect';
+        ripple.style.left = e.pageX + 'px';
+        ripple.style.top = e.pageY + 'px';
+        document.body.appendChild(ripple);
+        setTimeout(() => { ripple.remove(); }, 600);
+    });
+
+    // 3. Execution Logic
+    async function fire() {
+        const inp = document.getElementById('userInput');
         const val = inp.value.trim();
         if(!val) return;
         const ts = Date.now();
         
-        // UI Update
-        const stream = document.getElementById('output-stream');
-        stream.innerHTML += `<div class="msg"><div class="user-text">${val}</div><div id="res-${ts}" class="ai-text">...</div></div>`;
+        const term = document.getElementById('terminal');
+        term.innerHTML += `<div class="msg"><div class="user-label">${val}</div><div id="res-${ts}" class="ai-text">Analysing...</div></div>`;
         inp.value = "";
-        stream.scrollTop = stream.scrollHeight;
+        term.scrollTop = 99999;
 
-        // Firebase Push
         await fetch(`${DB}current.json`, { method: "PUT", body: JSON.stringify({ cmd: val, time: ts, resp: "PENDING", img: "" }) });
 
-        // Polling
-        const interval = setInterval(async () => {
+        const sync = setInterval(async () => {
             const r = await fetch(`${DB}current.json`).then(d => d.json());
             if(r.time == ts && r.resp !== "PENDING") {
                 document.getElementById(`res-${ts}`).innerText = r.resp;
-                if(r.img) document.getElementById('pc-frame').src = r.img;
-                clearInterval(interval);
+                if(r.img) {
+                    const frame = document.getElementById('live-frame');
+                    frame.src = r.img;
+                    frame.style.display = 'block';
+                    document.getElementById('no-signal').style.display = 'none';
+                }
+                clearInterval(sync);
             }
         }, 1000);
     }
-    document.getElementById('cmd').addEventListener('keypress', e => e.key === 'Enter' && send());
+    document.getElementById('userInput').addEventListener('keypress', e => e.key === 'Enter' && fire());
 </script>
 </body>
 </html>
