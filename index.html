@@ -3,110 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARSLAN-ASH AI | Master Console v3.1</title>
+    <title>ASH-AI MASTER v3.2</title>
     <style>
-        body { 
-            background: #000; 
-            color: #0f0; 
-            font-family: 'Courier New', monospace; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
-        }
-        .container { 
-            border: 2px solid #0f0; 
-            padding: 30px; 
-            box-shadow: 0 0 25px #0f0; 
-            border-radius: 15px; 
-            width: 90%; 
-            max-width: 600px; 
-            background: rgba(0, 10, 0, 0.9);
-        }
-        h2 { text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 25px; }
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            background: #111; 
-            border: 1px solid #0f0; 
-            color: #0f0; 
-            outline: none; 
-            box-sizing: border-box; 
-            font-size: 1.1em;
-            margin-bottom: 15px;
-        }
-        button { 
-            width: 100%; 
-            padding: 15px; 
-            background: #0f0; 
-            color: #000; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 1.1em;
-            transition: 0.3s;
-        }
-        button:hover { background: #0c0; box-shadow: 0 0 20px #0f0; }
-        #response-box { 
-            margin-top: 20px; 
-            border: 1px solid #333; 
-            padding: 15px; 
-            height: 200px; 
-            overflow-y: auto; 
-            background: #050505; 
-            color: #fff;
-            white-space: pre-wrap;
-        }
+        body { background: #000; color: #0f0; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { border: 2px solid #0f0; padding: 25px; box-shadow: 0 0 20px #0f0; border-radius: 15px; width: 90%; max-width: 500px; }
+        input { width: 100%; padding: 12px; background: #111; border: 1px solid #0f0; color: #0f0; margin-bottom: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #0f0; color: #000; border: none; font-weight: bold; cursor: pointer; }
+        #response-box { margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; height: 200px; overflow-y: auto; color: #fff; white-space: pre-wrap; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <h2>ASH-AI MASTER CONSOLE</h2>
-    <input type="text" id="cmdInput" placeholder="Hukam dein, Arslan bhai...">
-    <button onclick="executeCommand()">EXECUTE COMMAND</button>
-    <div id="response-box">[SYSTEM]: Connected to Tunnel. Ready for Gemma-2...</div>
+    <input type="text" id="masterCmd" placeholder="Hukam dein, Arslan bhai...">
+    <button onclick="triggerGemma()">EXECUTE VIA HDD</button>
+    <div id="response-box">[SYSTEM]: Connected to Tunnel. Ready...</div>
 </div>
 
 <script>
-    async function executeCommand() {
-        const cmd = document.getElementById("cmdInput").value;
+    async function triggerGemma() {
+        const cmd = document.getElementById("masterCmd").value;
         const resBox = document.getElementById("response-box");
-
-        // --- FIXED NGROK URL & ENDPOINT ---
+        // Aapka latest Ngrok URL
         const NGROK_URL = "https://b691-39-50-229-101.ngrok-free.app/v1/chat/completions"; 
 
-        if (!cmd) return alert("Kuch likho toh sahi!");
-
-        resBox.innerText = "[TRANSMITTING]: Sending to Portable AI (HDD)...";
+        if (!cmd) return alert("Kuch likhen!");
+        resBox.innerText = "[TRANSMITTING]: Sending to HDD Brain...";
 
         try {
             const response = await fetch(NGROK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: "gemma2-2b-local:latest", 
+                    model: "gemma2-2b-local:latest",
                     messages: [{ role: "user", content: cmd }],
                     stream: false
                 })
             });
-
             const data = await response.json();
-            
-            // Format response according to your Portable AI structure
-            if (data.choices && data.choices[0].message) {
-                resBox.innerText = "[GEMMA-2]: " + data.choices[0].message.content;
-            } else {
-                resBox.innerText = "[ERROR]: Unexpected response format.";
-            }
-
+            resBox.innerText = "[GEMMA-2]: " + data.choices[0].message.content;
         } catch (err) {
-            resBox.innerText = "[CRITICAL ERROR]: Connection failed. 1. Check Ngrok CMD. 2. Check Portable AI CMD.";
+            resBox.innerText = "[ERROR]: Link connection failed. Check Ngrok/Server.";
         }
     }
 </script>
-
 </body>
 </html>
