@@ -1,1 +1,1 @@
-open notepad
+open notepad and write hi ash how are you
