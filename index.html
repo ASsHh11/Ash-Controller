@@ -2,62 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ASH AI - MASTER CONTROL</title>
+    <title>ARSLAN-ASH AI | IMPERIAL CORE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #00ff00; --bg: #050505; }
-        body { background: var(--bg); color: var(--neon); font-family: 'Segoe UI', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .panel { width: 450px; background: rgba(15,15,15,0.9); border: 1px solid var(--neon); border-radius: 5px; padding: 20px; box-shadow: 0 0 20px rgba(0,255,0,0.1); position: relative; }
-        .panel::before { content: "SYSTEM ACTIVE"; position: absolute; top: -10px; left: 20px; background: var(--bg); padding: 0 10px; font-size: 0.7rem; }
-        #output { height: 200px; background: #000; border: 1px solid #222; margin-bottom: 15px; padding: 10px; overflow-y: auto; font-size: 0.85rem; color: #fff; border-radius: 3px; }
-        .ai-msg { color: var(--neon); margin-bottom: 8px; }
-        .user-msg { color: #888; margin-bottom: 8px; font-style: italic; }
-        input { width: 100%; background: #111; border: 1px solid #333; color: var(--neon); padding: 12px; box-sizing: border-box; outline: none; margin-bottom: 10px; }
-        button { width: 100%; background: var(--neon); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: #fff; box-shadow: 0 0 15px var(--neon); }
-        .loader { height: 2px; width: 0%; background: var(--neon); transition: 0.5s; }
+        :root { --gold: #D4AF37; --bg: #030303; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; height: 100vh; overflow: hidden; }
+        
+        .elite-header { padding: 30px; text-align: center; border-bottom: 1px solid #111; }
+        .logo { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.8rem; letter-spacing: 8px; }
+
+        .dashboard { display: grid; grid-template-columns: 1fr 400px; height: calc(100vh - 100px); }
+        
+        .main-display { padding: 40px; display: flex; flex-direction: column; border-right: 1px solid #111; }
+        #output-stream { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; scrollbar-width: none; }
+        .msg { margin-bottom: 25px; animation: fadeIn 1s ease; }
+        .ai-text { color: #fff; font-size: 1.1rem; line-height: 1.6; border-left: 1px solid var(--gold); padding-left: 20px; }
+        .user-text { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
+        
+        .visual-viewport { background: #080808; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .pc-screen { width: 100%; border: 1px solid #222; box-shadow: 0 0 50px rgba(0,0,0,1); }
+        .view-label { color: var(--gold); font-size: 0.6rem; letter-spacing: 3px; margin-bottom: 15px; }
+
+        .input-area { position: fixed; bottom: 0; width: 100%; background: #050505; padding: 20px 40px; border-top: 1px solid #111; display: flex; align-items: center; }
+        input { flex-grow: 1; background: transparent; border: none; color: #fff; font-size: 1.2rem; outline: none; }
+        .btn-exec { background: var(--gold); color: #000; border: none; padding: 10px 40px; font-weight: bold; cursor: pointer; letter-spacing: 2px; transition: 0.3s; }
+        .btn-exec:hover { filter: brightness(1.2); box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-<div class="panel">
-    <h2>ASH AI ENGINE</h2>
-    <div id="output">--- Initializing Neural Link ---<br>Ready for Master Arslan...</div>
-    <div id="load-bar" class="loader"></div>
-    <input type="text" id="cmdInput" placeholder="Ask anything or give a command...">
-    <button onclick="sendOrder()">Submit Order</button>
+
+<div class="elite-header"><div class="logo">ARSLAN-ASH AI</div></div>
+
+<div class="dashboard">
+    <div class="main-display">
+        <div id="output-stream"></div>
+    </div>
+    <div class="visual-viewport">
+        <div class="view-label">LIVE_TELEMETRY</div>
+        <img id="pc-frame" class="pc-screen" src="https://via.placeholder.com/1920x1080/080808/080808" alt="PC View">
+    </div>
+</div>
+
+<div class="input-area">
+    <input type="text" id="cmd" placeholder="COMMAND YOUR SYSTEM..." autocomplete="off">
+    <button class="btn-exec" onclick="send()">EXECUTE</button>
 </div>
 
 <script>
-    const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/.json";
+    const DB = "https://sh-controller-default-rtdb.firebaseio.com/";
 
-    async function sendOrder() {
-        const input = document.getElementById('cmdInput');
-        const order = input.value.trim();
-        if(!order) return;
+    async function send() {
+        const inp = document.getElementById('cmd');
+        const val = inp.value.trim();
+        if(!val) return;
+        const ts = Date.now();
+        
+        // UI Update
+        const stream = document.getElementById('output-stream');
+        stream.innerHTML += `<div class="msg"><div class="user-text">${val}</div><div id="res-${ts}" class="ai-text">...</div></div>`;
+        inp.value = "";
+        stream.scrollTop = stream.scrollHeight;
 
-        document.getElementById('load-bar').style.width = "100%";
-        document.getElementById('output').innerHTML += `<div class="user-msg">> ${order}</div>`;
+        // Firebase Push
+        await fetch(`${DB}current.json`, { method: "PUT", body: JSON.stringify({ cmd: val, time: ts, resp: "PENDING", img: "" }) });
 
-        try {
-            await fetch(DB_URL, {
-                method: "PUT",
-                body: JSON.stringify({ command: order, time: Date.now() })
-            });
-            input.value = "";
-            setTimeout(() => { document.getElementById('load-bar').style.width = "0%"; }, 1000);
-            
-            // Check for AI Response after 5s
-            setTimeout(getAIResponse, 5000);
-        } catch (e) { alert("Link Error"); }
+        // Polling
+        const interval = setInterval(async () => {
+            const r = await fetch(`${DB}current.json`).then(d => d.json());
+            if(r.time == ts && r.resp !== "PENDING") {
+                document.getElementById(`res-${ts}`).innerText = r.resp;
+                if(r.img) document.getElementById('pc-frame').src = r.img;
+                clearInterval(interval);
+            }
+        }, 1000);
     }
-
-    async function getAIResponse() {
-        const res = await fetch(DB_URL);
-        const data = await res.json();
-        if(data.response) {
-            document.getElementById('output').innerHTML += `<div class="ai-msg">ASH: ${data.response}</div>`;
-            document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
-        }
-    }
+    document.getElementById('cmd').addEventListener('keypress', e => e.key === 'Enter' && send());
 </script>
 </body>
 </html>
