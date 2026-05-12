@@ -2,37 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASH-AI MASTER v3.3</title>
+    <title>ASH-AI MASTER v3.5</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { border: 2px solid #0f0; padding: 25px; box-shadow: 0 0 20px #0f0; border-radius: 15px; width: 90%; max-width: 500px; background: rgba(0,20,0,0.8); }
-        h2 { text-align: center; letter-spacing: 3px; }
-        input { width: 100%; padding: 12px; background: #111; border: 1px solid #0f0; color: #0f0; margin-bottom: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #0f0; color: #000; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        #response-box { margin-top: 20px; border: 1px solid #333; padding: 10px; height: 200px; overflow-y: auto; color: #fff; background: #050505; white-space: pre-wrap; font-size: 0.9em; }
+        body { background: #000; color: #0f0; font-family: monospace; text-align: center; padding-top: 50px; }
+        .box { border: 2px solid #0f0; padding: 20px; width: 80%; max-width: 500px; margin: auto; box-shadow: 0 0 15px #0f0; }
+        input { width: 90%; padding: 10px; background: #111; border: 1px solid #0f0; color: #0f0; }
+        button { width: 94%; padding: 10px; background: #0f0; color: #000; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        #res { margin-top: 20px; color: #fff; text-align: left; height: 150px; overflow-y: auto; background: #050505; padding: 10px; }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="box">
     <h2>ASH-AI CONSOLE</h2>
-    <input type="text" id="masterCmd" placeholder="Hukam dein, Arslan bhai...">
-    <button onclick="triggerGemma()">EXECUTE COMMAND</button>
-    <div id="response-box">[SYSTEM]: Neural Link Ready. Waiting for signal...</div>
+    <input type="text" id="cmd" placeholder="Hukam dein Arslan bhai...">
+    <button onclick="send()">EXECUTE</button>
+    <div id="res">System Ready...</div>
 </div>
 
 <script>
-    async function triggerGemma() {
-        const cmd = document.getElementById("masterCmd").value;
-        const resBox = document.getElementById("response-box");
-        // Aapka verified Ngrok URL
-        const NGROK_URL = "https://b691-39-50-229-101.ngrok-free.app/api/chat"; 
+    async function send() {
+        const cmd = document.getElementById("cmd").value;
+        const resBox = document.getElementById("res");
+        // Aapka Tunnel Link + New Path
+        const URL = "https://b691-39-50-229-101.ngrok-free.app/ollama/api/chat";
 
-        if (!cmd) return alert("Kuch likhen!");
-        resBox.innerText = "[TRANSMITTING]: Sending to HDD Brain via /api/chat...";
+        resBox.innerText = "[WAIT]: Sending to HDD via /ollama path...";
 
         try {
-            const response = await fetch(NGROK_URL, {
+            const response = await fetch(URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -42,11 +39,9 @@
                 })
             });
             const data = await response.json();
-            // Ollama structure handling
             resBox.innerText = "[GEMMA-2]: " + data.message.content;
-            document.getElementById("masterCmd").value = "";
         } catch (err) {
-            resBox.innerText = "[ERROR]: Connection failed. 1. Check Ngrok CMD. 2. Click 'Visit Site' on Ngrok link in mobile.";
+            resBox.innerText = "[ERROR]: Tunnel issue. PC check karein.";
         }
     }
 </script>
