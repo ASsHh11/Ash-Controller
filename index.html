@@ -3,121 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARSLAN-ASH AI ASSISTANT</title>
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <title>ARSLAN-ASH AI | SECURE CORE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --glow: #00ffcc; --bg: #000505; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg); font-family: 'Orbitron', sans-serif; color: white; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        #particles-js { position: absolute; width: 100%; height: 100%; z-index: 1; }
+        :root { --neon: #00ffcc; --bg: #000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; width: 100%; overflow: hidden; font-family: 'Share Tech Mono', monospace; background: #000; color: white; }
+        #vanta-canvas { position: absolute; width: 100%; height: 100%; z-index: 1; }
         
-        .main-frame {
-            position: relative; z-index: 2; width: 90%; max-width: 500px;
-            background: rgba(0, 20, 20, 0.6); backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 20px;
-            padding: 30px; box-shadow: 0 0 50px rgba(0, 255, 204, 0.1);
-            animation: float 4s ease-in-out infinite;
-        }
-
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        h1 { font-size: 1.2rem; text-align: center; letter-spacing: 4px; color: var(--glow); text-shadow: 0 0 10px var(--glow); margin-bottom: 20px; }
+        /* Auth Screen */
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; justify-content: center; align-items: center; }
+        .auth-box { width: 300px; padding: 30px; border: 1px solid var(--neon); background: rgba(0,20,20,0.8); text-align: center; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
         
-        #display {
-            height: 250px; overflow-y: auto; background: rgba(0,0,0,0.4);
-            border-radius: 10px; padding: 15px; margin-bottom: 20px;
-            font-family: 'Consolas', monospace; font-size: 0.9rem; border-left: 3px solid var(--glow);
-        }
+        /* Main Layout */
+        .app-container { position: relative; z-index: 10; display: flex; height: 100vh; width: 100vw; opacity: 0; transition: 1s; }
+        
+        /* Sidebar History */
+        .sidebar { width: 260px; background: rgba(2, 8, 8, 0.9); border-right: 1px solid rgba(0, 255, 204, 0.2); padding: 20px; display: flex; flex-direction: column; backdrop-filter: blur(10px); }
+        .history-list { flex-grow: 1; overflow-y: auto; margin-top: 20px; }
+        .history-item { padding: 10px; border: 1px solid rgba(0,255,204,0.1); margin-bottom: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item:hover { background: rgba(0,255,204,0.1); border-color: var(--neon); }
+        .new-chat-btn { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
-        .msg-ai { color: var(--glow); margin-bottom: 15px; animation: fadeIn 0.5s; }
-        .msg-user { color: #aaa; text-align: right; margin-bottom: 15px; font-style: italic; }
-
-        .input-group { position: relative; }
-        input {
-            width: 100%; background: transparent; border: 1px solid rgba(0,255,204,0.5);
-            padding: 15px; border-radius: 30px; color: white; outline: none;
-            transition: 0.3s; padding-right: 60px;
-        }
-        input:focus { border-color: var(--glow); box-shadow: 0 0 15px rgba(0,255,204,0.3); }
-
-        button {
-            position: absolute; right: 5px; top: 5px; width: 45px; height: 45px;
-            background: var(--glow); border: none; border-radius: 50%;
-            cursor: pointer; font-weight: bold; font-size: 1.2rem; transition: 0.3s;
-        }
-        button:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--glow); }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: var(--glow); }
+        /* Chat Area */
+        .chat-main { flex-grow: 1; display: flex; flex-direction: column; padding: 40px; justify-content: center; align-items: center; }
+        .core-panel { width: 100%; max-width: 700px; background: rgba(2, 8, 8, 0.85); border: 1px solid rgba(0, 255, 204, 0.15); border-top: 3px solid var(--neon); padding: 30px; clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
+        #terminal { height: 350px; overflow-y: auto; background: rgba(0, 0, 0, 0.4); padding: 15px; border: 1px solid rgba(0, 255, 204, 0.05); margin-bottom: 20px; font-size: 0.9rem; scrollbar-width: none; }
+        .input-area { display: flex; gap: 10px; }
+        input { flex-grow: 1; background: rgba(0,255,204,0.03); border: 1px solid rgba(0,255,204,0.2); padding: 15px; color: #fff; outline: none; font-family: 'Share Tech Mono'; }
+        .run-btn { background: var(--neon); color: #000; border: none; padding: 0 25px; cursor: pointer; font-weight: 700; clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%); }
+        
+        .entry { margin-bottom: 10px; animation: fadeIn 0.3s; }
+        .sys-label { color: var(--neon); font-weight: bold; }
+        .user-label { color: #555; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body id="vanta-canvas">
 
-<div id="particles-js"></div>
-
-<div class="main-frame">
-    <h1>ARSLAN-ASH AI</h1>
-    <div id="display">
-        <div class="msg-ai">SYSTEM: Neural link established. Master Arslan, awaiting your command...</div>
+<div id="auth-screen">
+    <div class="auth-box">
+        <h2 style="color: var(--neon); margin-bottom: 20px; font-size: 0.9rem;">ACCESS CONTROL</h2>
+        <input type="password" id="sys-pass" placeholder="PASSWORD" style="width: 100%; margin-bottom: 15px; text-align: center;">
+        <button class="new-chat-btn" onclick="unlock()">INITIALIZE</button>
     </div>
-    
-    <div class="input-group">
-        <input type="text" id="userInput" placeholder="Speak to the Core..." autocomplete="off">
-        <button onclick="trigger()">⚡</button>
+</div>
+
+<div class="app-container" id="main-app">
+    <div class="sidebar">
+        <h2 style="font-size: 0.8rem; color: var(--neon); letter-spacing: 2px;">HISTORY LOG</h2>
+        <div id="date-now" style="font-size: 0.6rem; color: #444; margin-bottom: 15px;"></div>
+        <button class="new-chat-btn" onclick="newChat()">+ NEW SESSION</button>
+        <div class="history-list" id="history-items"></div>
+    </div>
+
+    <div class="chat-main">
+        <div class="core-panel">
+            <div id="terminal">
+                <div class="entry"><span class="sys-label">[SYSTEM]:</span> Neural link synchronized. History loaded.</div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="COMMAND / INQUIRY..." autocomplete="off">
+                <button class="run-btn" onclick="execute()">RUN</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/.json";
+    const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/";
+    const ADMIN_PASS = "MyHome@123"; // Apka password
 
-    // Particles Animation Config
-    particlesJS("particles-js", {
-        "particles": {
-            "number": { "value": 80 },
-            "color": { "value": "#00ffcc" },
-            "shape": { "type": "circle" },
-            "opacity": { "value": 0.5 },
-            "size": { "value": 2 },
-            "line_linked": { "enable": true, "distance": 150, "color": "#00ffcc", "opacity": 0.4, "width": 1 },
-            "move": { "enable": true, "speed": 2 }
-        },
-        "interactivity": {
-            "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } }
-        }
-    });
+    VANTA.NET({ el: "#vanta-canvas", mouseControls: true, touchControls: true, color: 0x00ffcc, backgroundColor: 0x0, points: 12.0 });
 
-    async function trigger() {
+    function unlock() {
+        if(document.getElementById('sys-pass').value === ADMIN_PASS) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.opacity = '1';
+            loadHistory();
+            document.getElementById('date-now').innerText = new Date().toDateString().toUpperCase();
+        } else { alert("ACCESS DENIED"); }
+    }
+
+    async function execute() {
         const input = document.getElementById('userInput');
-        const display = document.getElementById('display');
         const val = input.value.trim();
         if(!val) return;
 
-        display.innerHTML += `<div class="msg-user">>> ${val}</div>`;
+        const timestamp = Date.now();
+        const chatEntry = { command: val, time: timestamp, response: "analyzing..." };
+
+        // Save to History & Trigger PC
+        await fetch(`${DB_URL}history/${timestamp}.json`, { method: "PUT", body: JSON.stringify(chatEntry) });
+        await fetch(`${DB_URL}current.json`, { method: "PUT", body: JSON.stringify(chatEntry) });
+        
+        appendMessage(">>", val, "user-label");
         input.value = "";
-        display.scrollTop = display.scrollHeight;
-
-        try {
-            await fetch(DB_URL, {
-                method: "PUT",
-                body: JSON.stringify({ command: val, time: Date.now(), response: "analyzing..." })
-            });
-
-            const poller = setInterval(async () => {
-                const res = await fetch(DB_URL);
-                const data = await res.json();
-                if(data.response && data.response !== "analyzing...") {
-                    display.innerHTML += `<div class="msg-ai">CORE: ${data.response}</div>`;
-                    display.scrollTop = display.scrollHeight;
-                    clearInterval(poller);
-                }
-            }, 1000);
-        } catch(e) { console.error("Link severed."); }
+        pollResponse(timestamp);
+        loadHistory();
     }
 
-    document.getElementById('userInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') trigger(); });
-</script>
+    function appendMessage(label, text, className) {
+        const term = document.getElementById('terminal');
+        term.innerHTML += `<div class="entry"><span class="${className}">${label}</span> ${text}</div>`;
+        term.scrollTop = term.scrollHeight;
+    }
 
+    async function loadHistory() {
+        const res = await fetch(`${DB_URL}history.json`);
+        const data = await res.json();
+        const list = document.getElementById('history-items');
+        list.innerHTML = "";
+        if(data) {
+            Object.keys(data).reverse().forEach(key => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerText = data[key].command;
+                item.onclick = () => {
+                    document.getElementById('terminal').innerHTML = `<div class="entry"><span class="sys-label">[ARCHIVE]:</span> ${data[key].response}</div>`;
+                };
+                list.appendChild(item);
+            });
+        }
+    }
+
+    function pollResponse(ts) {
+        const inter = setInterval(async () => {
+            const res = await fetch(`${DB_URL}current.json`);
+            const data = await res.json();
+            if(data.time == ts && data.response !== "analyzing...") {
+                appendMessage("[ARSLAN-ASH AI]:", data.response, "sys-label");
+                clearInterval(inter);
+            }
+        }, 1000);
+    }
+
+    function newChat() { document.getElementById('terminal').innerHTML = `<div class="entry"><span class="sys-label">[SYSTEM]:</span> New session initialized.</div>`; }
+</script>
 </body>
 </html>
