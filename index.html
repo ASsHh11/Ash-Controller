@@ -3,88 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ash AI Master - FIREBASE SPEED</title>
+    <title>ASH AI - CORE INTERFACE</title>
     <style>
-        body { background: #0a0a0a; color: #00ff00; font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { width: 400px; background: #111; padding: 30px; border: 2px solid #00ff00; border-radius: 15px; text-align: center; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
-        h2 { margin-bottom: 20px; letter-spacing: 3px; text-transform: uppercase; font-size: 1.4rem; color: #00ff00; text-shadow: 0 0 10px #00ff00; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; background: #1a1a1a; color: #0f0; outline: none; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; background: #00ff00; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: #00cc00; box-shadow: 0 0 15px #00ff00; }
-        #status { font-size: 0.8rem; color: #888; margin-top: 10px; }
-        .success { color: #00ff00 !important; }
+        :root { --neon: #00ff00; --bg: #050505; --dark: #111; }
+        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .panel { width: 500px; background: rgba(10,10,10,0.95); border: 1px solid var(--neon); border-radius: 2px; padding: 25px; box-shadow: 0 0 25px rgba(0,255,0,0.1); position: relative; }
+        .panel::before { content: "MASTER CONTROL UNIT v4.0"; position: absolute; top: -12px; left: 20px; background: var(--bg); padding: 0 10px; font-size: 0.7rem; letter-spacing: 2px; }
+        #output { height: 250px; background: #000; border: 1px solid #222; margin-bottom: 20px; padding: 15px; overflow-y: auto; font-size: 0.85rem; line-height: 1.5; color: #fff; border-radius: 2px; scrollbar-width: thin; }
+        .ai-msg { color: var(--neon); margin-bottom: 10px; border-left: 2px solid var(--neon); padding-left: 10px; }
+        .user-msg { color: #888; margin-bottom: 10px; text-align: right; font-style: italic; }
+        input { width: 100%; background: #000; border: 1px solid #444; color: var(--neon); padding: 15px; box-sizing: border-box; outline: none; margin-bottom: 15px; font-size: 1rem; transition: 0.3s; }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,255,0,0.2); }
+        button { width: 100%; background: var(--neon); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
+        button:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
+        .loader { height: 2px; width: 0%; background: var(--neon); transition: 0.4s; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>ASH COMMANDER</h2>
-    <div id="status">System Status: Online</div>
-    <input type="text" id="cmdInput" placeholder="Order (e.g. open notepad and type hi)">
-    <button id="execBtn" onclick="sendOrder()">EXECUTE INSTANTLY</button>
+<div class="panel">
+    <div id="output">
+        <div class="ai-msg">ASH AI: Awaiting Neural Link... Master Arslan, I am ready.</div>
+    </div>
+    <div id="load-bar" class="loader"></div>
+    <input type="text" id="cmdInput" placeholder="Command or Question..." autocomplete="off">
+    <button id="execBtn" onclick="sendOrder()">Execute Link</button>
 </div>
 
 <script>
-    // --- FIREBASE CONFIGURATION ---
-    // Aapka Firebase URL jo aapne copy kiya tha
-    const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/.json"; 
+    const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/.json";
 
     async function sendOrder() {
         const input = document.getElementById('cmdInput');
         const order = input.value.trim();
-        const status = document.getElementById('status');
-        const btn = document.getElementById('execBtn');
+        const output = document.getElementById('output');
+        const loadBar = document.getElementById('load-bar');
 
         if(!order) return;
 
-        // UI Feedback
-        status.innerText = "Transmitting to Firebase...";
-        status.className = "";
-        btn.disabled = true;
-        btn.style.opacity = "0.5";
+        // UI Action
+        output.innerHTML += `<div class="user-msg">> ${order}</div>`;
+        loadBar.style.width = "100%";
+        input.value = "";
+        output.scrollTop = output.scrollHeight;
 
         try {
-            // Firebase ko direct data bhej rahe hain bina kisi token ke
-            const response = await fetch(DB_URL, {
+            await fetch(DB_URL, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    command: order, 
-                    time: Date.now() // Unique time taake PC ko pata chale naya order hai
-                })
+                body: JSON.stringify({ command: order, time: Date.now(), response: "processing..." })
             });
 
-            if(response.ok) {
-                status.innerText = "Order Synced Successfully!";
-                status.className = "success";
-                input.value = ""; // Input clear karein
-            } else {
-                throw new Error("Firebase rejected the update");
-            }
-
-        } catch(e) {
-            console.error(e);
-            status.innerText = "Connection Error!";
-            status.style.color = "red";
-        } finally {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            // 3 second baad status normal karein
-            setTimeout(() => {
-                if(status.className === "success") {
-                    status.innerText = "System Status: Online";
-                    status.className = "";
+            // Start Polling for AI Response
+            let checkCount = 0;
+            const poll = setInterval(async () => {
+                const res = await fetch(DB_URL);
+                const data = await res.json();
+                if(data.response && data.response !== "processing...") {
+                    output.innerHTML += `<div class="ai-msg">ASH: ${data.response}</div>`;
+                    output.scrollTop = output.scrollHeight;
+                    loadBar.style.width = "0%";
+                    clearInterval(poll);
                 }
-            }, 3000);
+                if(checkCount++ > 20) clearInterval(poll); // Timeout after 20s
+            }, 1000);
+
+        } catch (e) {
+            output.innerHTML += `<div style="color:red">!! LINK ERROR: ${e.message}</div>`;
         }
     }
 
-    // Enter key support
-    document.getElementById("cmdInput").addEventListener("keyup", function(event) {
-        if (event.key === "Enter") {
-            sendOrder();
-        }
-    });
+    document.getElementById("cmdInput").addEventListener("keyup", (e) => { if (e.key === "Enter") sendOrder(); });
 </script>
 
 </body>
