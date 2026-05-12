@@ -1,1 +1,1 @@
-open chrome
+open notepad
