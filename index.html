@@ -4,191 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ARSLAN-ASH AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ffcc; --bg: #000; }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --gold: #D4AF37; --glass: rgba(255, 255, 255, 0.05); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Montserrat', sans-serif; color: #fff; }
         
-        #galaxy-canvas { position: absolute; width: 100%; height: 100%; z-index: 1; cursor: crosshair; }
+        canvas { position: absolute; inset: 0; z-index: 1; cursor: move; }
 
-        /* UI Header */
-        header { position: fixed; top: 20px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
-        header h1 { font-size: 1.5rem; letter-spacing: 10px; color: var(--accent); font-weight: 600; text-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
-
-        /* Sidebar Logic */
-        .sidebar { 
-            position: fixed; left: 0; top: 0; height: 100%; width: 320px; 
-            background: rgba(5,5,5,0.85); backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(0,255,204,0.1); z-index: 150;
-            padding: 30px; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Glass Sidebar */
+        .sidebar {
+            position: fixed; left: 20px; top: 100px; bottom: 120px; width: 350px;
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;
+            z-index: 100; padding: 25px; display: flex; flex-direction: column;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8); transition: 0.5s;
         }
-        .sidebar.hidden { transform: translateX(-100%); }
-        
-        /* Toggle Button */
-        .toggle-btn {
-            position: absolute; right: -40px; top: 50%; width: 40px; height: 60px;
-            background: rgba(0, 255, 204, 0.1); border: 1px solid rgba(0,255,204,0.2);
-            color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center;
-            border-radius: 0 10px 10px 0; backdrop-filter: blur(10px);
-        }
+        .sidebar.hidden { transform: translateX(-400px); }
 
-        /* Viewport & Chat */
-        .viewport-box { width: 100%; background: #000; border: 1px solid #111; margin-top: 50px; overflow: hidden; position: relative; }
-        #pc-view { width: 100%; display: none; }
-        #terminal { height: 300px; overflow-y: auto; margin: 20px 0; scrollbar-width: none; font-size: 0.85rem; line-height: 1.6; }
-        
-        .msg { margin-bottom: 15px; border-left: 1px solid var(--accent); padding-left: 10px; animation: fadeIn 0.5s; }
-        
-        .input-wrap { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; z-index: 200; display: flex; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(0,255,204,0.3); border-radius: 50px; padding: 5px; }
-        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 15px 25px; outline: none; font-size: 1rem; }
-        .send-btn { background: var(--accent); color: #000; border: none; padding: 0 25px; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .logo-area { position: fixed; top: 30px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
+        .logo-area h1 { font-family: 'Cinzel', serif; font-size: 1.8rem; letter-spacing: 12px; color: var(--gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+
+        /* Live Telemetry Viewport */
+        .viewport { width: 100%; height: 180px; background: rgba(0,0,0,0.4); border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); overflow: hidden; margin-bottom: 20px; position: relative; }
+        #pc-screen { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .view-tag { position: absolute; top: 10px; left: 10px; font-size: 0.5rem; color: var(--gold); letter-spacing: 2px; }
+
+        #terminal { flex-grow: 1; overflow-y: auto; scrollbar-width: none; font-size: 0.85rem; color: #fff; }
+        .msg { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); animation: fadeIn 0.5s; }
+        .user-tag { color: var(--gold); font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 5px; display: block; }
+
+        /* Glass Input */
+        .input-box {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 800px; z-index: 100;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px;
+            display: flex; padding: 8px;
+        }
+        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 12px 25px; outline: none; font-size: 1rem; }
+        .exec-btn { background: var(--gold); color: #000; border: none; padding: 0 35px; border-radius: 40px; cursor: pointer; font-weight: bold; letter-spacing: 1px; }
+
+        .toggle-tab { position: fixed; left: 0; top: 50%; width: 30px; height: 60px; background: var(--gold); z-index: 110; border-radius: 0 10px 10px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Mobile specific adjustments */
-        @media (max-width: 600px) {
-            .sidebar { width: 85%; }
-            header h1 { font-size: 1.1rem; letter-spacing: 5px; }
-        }
     </style>
 </head>
 <body>
 
-<canvas id="galaxy-canvas"></canvas>
+<canvas id="galaxy"></canvas>
 
-<header>
-    <h1>ARSLAN-ASH AI</h1>
-</header>
+<div class="logo-area"><h1>ARSLAN-ASH AI</h1></div>
+
+<div class="toggle-tab" onclick="toggleUI()">❯</div>
 
 <div class="sidebar" id="sidebar">
-    <button class="toggle-btn" onclick="toggleSidebar()">❯</button>
-    
-    <div class="viewport-box">
-        <img id="pc-view" src="">
-        <div id="status-tag" style="padding:40px; text-align:center; color:#222; font-size:0.6rem; letter-spacing:2px;">PC TELEMETRY OFF</div>
+    <div class="viewport">
+        <span class="view-tag">LIVE_TELEMETRY</span>
+        <img id="pc-screen" src="">
+        <div id="no-sig" style="display:flex; height:100%; align-items:center; justify-content:center; color:#333; font-size:0.6rem;">LINK_IDLE</div>
     </div>
-
     <div id="terminal">
-        <div class="msg">Interface Synchronized. Operational in deep space.</div>
+        <div class="msg"><span class="user-tag">SYSTEM</span>Operational in deep space clusters.</div>
     </div>
 </div>
 
-<div class="input-wrap">
-    <input type="text" id="userInput" placeholder="COMMAND GALAXY..." autocomplete="off">
-    <button class="send-btn" onclick="execute()">RUN</button>
+<div class="input-box">
+    <input type="text" id="cmd" placeholder="Command the Core..." autocomplete="off">
+    <button class="exec-btn" onclick="execute()">RUN</button>
 </div>
 
 <script>
     const DB = "https://sh-controller-default-rtdb.firebaseio.com/";
-    const canvas = document.getElementById('galaxy-canvas');
+    const canvas = document.getElementById('galaxy');
     const ctx = canvas.getContext('2d');
-    let stars = [];
-    let scale = 1;
-    let mouse = { x: 0, y: 0 };
+    let stars = [], scale = 1, rotation = 0;
 
-    // --- 1. GALAXY ENGINE ---
-    function initGalaxy() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+    function init() {
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         stars = [];
-        for(let i=0; i<400; i++) {
+        for(let i=0; i<800; i++) {
+            let angle = Math.random() * Math.PI * 2;
+            let dist = Math.pow(Math.random(), 0.5) * 400;
             stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 2,
-                baseX: Math.random() * canvas.width,
-                baseY: Math.random() * canvas.height,
-                color: i % 10 === 0 ? '#00ffcc' : '#fff'
+                a: angle, d: dist, s: Math.random() * 2,
+                v: (0.001 + Math.random() * 0.002) * (400/(dist+50)),
+                c: i % 20 === 0 ? '#D4AF37' : '#fff'
             });
         }
     }
 
-    function drawGalaxy() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+    function draw() {
+        ctx.fillStyle = 'black'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.scale(scale, scale);
+        ctx.rotate(rotation);
         
-        stars.forEach((s, i) => {
-            // Interactive Wires
-            let dx = mouse.x - s.x;
-            let dy = mouse.y - s.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            
-            if(dist < 150) {
-                ctx.beginPath();
-                ctx.moveTo(s.x, s.y);
-                ctx.lineTo(mouse.x, mouse.y);
-                ctx.stroke();
-            }
-
-            // Draw Stars with Zoom Scale
-            ctx.fillStyle = s.color;
-            let zoomX = (s.x - canvas.width/2) * scale + canvas.width/2;
-            let zoomY = (s.y - canvas.height/2) * scale + canvas.height/2;
-            let currentSize = s.size * scale;
-            
-            if(currentSize > 0.5) {
-                ctx.beginPath();
-                ctx.arc(zoomX, zoomY, currentSize > 5 ? 5 : currentSize, 0, Math.PI*2);
-                ctx.fill();
-            }
-        });
-        requestAnimationFrame(drawGalaxy);
-    }
-
-    // --- 2. INTERACTIVE ZOOM & CLICK ---
-    window.addEventListener('wheel', e => {
-        scale += e.deltaY * -0.001;
-        scale = Math.min(Math.max(0.5, scale), 20); // Infinite zoom feel
-    });
-
-    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-    
-    // Breaking Wires on Click
-    window.addEventListener('mousedown', () => {
         stars.forEach(s => {
-            if(Math.abs(mouse.x - s.x) < 50) s.x += (Math.random() - 0.5) * 200;
+            s.a += s.v;
+            let x = Math.cos(s.a) * s.d;
+            let y = Math.sin(s.a) * s.d * 0.6; // Spiral effect
+            ctx.fillStyle = s.c;
+            ctx.beginPath();
+            ctx.arc(x, y, s.s, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Draw Neural Connections
+            ctx.strokeStyle = 'rgba(212, 175, 55, 0.02)';
+            if(s.d < 150) { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(0,0); ctx.stroke(); }
         });
-    });
-
-    // --- 3. SIDEBAR LOGIC ---
-    function toggleSidebar() {
-        const sb = document.getElementById('sidebar');
-        sb.classList.toggle('hidden');
-        document.querySelector('.toggle-btn').innerText = sb.classList.contains('hidden') ? '❯' : '❮';
+        ctx.restore();
+        rotation += 0.0005;
+        requestAnimationFrame(draw);
     }
 
-    // --- 4. EXECUTION ---
+    // Zoom Logic
+    window.addEventListener('wheel', e => { scale += e.deltaY * -0.001; scale = Math.max(0.5, Math.min(scale, 50)); });
+    
+    let lastDist = 0;
+    window.addEventListener('touchmove', e => {
+        if(e.touches.length === 2) {
+            let d = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            if(lastDist) scale += (d - lastDist) * 0.01;
+            lastDist = d;
+        }
+    });
+
+    function toggleUI() { document.getElementById('sidebar').classList.toggle('hidden'); }
+
     async function execute() {
-        const inp = document.getElementById('userInput');
-        const val = inp.value.trim();
-        if(!val) return;
+        const inp = document.getElementById('cmd');
+        const val = inp.value.trim(); if(!val) return;
         const ts = Date.now();
-        const term = document.getElementById('terminal');
-        term.innerHTML += `<div class="msg"><span style="color:#555">REQ:</span> ${val}</div>`;
+        document.getElementById('terminal').innerHTML += `<div class="msg"><span class="user-tag">REQ</span>${val}</div>`;
         inp.value = "";
-        term.scrollTop = 99999;
-
+        
         await fetch(`${DB}current.json`, { method: "PUT", body: JSON.stringify({ cmd: val, time: ts, resp: "PENDING", img: "" }) });
-
-        const sync = setInterval(async () => {
+        
+        const poll = setInterval(async () => {
             const r = await fetch(`${DB}current.json`).then(d => d.json());
             if(r.time == ts && r.resp !== "PENDING") {
-                term.innerHTML += `<div class="msg"><span style="color:var(--accent)">AI:</span> ${r.resp}</div>`;
+                document.getElementById('terminal').innerHTML += `<div class="msg"><span class="user-tag" style="color:#fff">AI</span>${r.resp}</div>`;
                 if(r.img) {
-                    const frame = document.getElementById('pc-view');
-                    frame.src = r.img;
-                    frame.style.display = 'block';
-                    document.getElementById('status-tag').style.display = 'none';
+                    const screen = document.getElementById('pc-screen');
+                    screen.src = r.img; screen.style.display = 'block';
+                    document.getElementById('no-sig').style.display = 'none';
                 }
-                clearInterval(sync);
+                clearInterval(poll);
             }
         }, 1000);
     }
 
-    initGalaxy();
-    drawGalaxy();
-    window.onresize = initGalaxy;
+    init(); draw();
 </script>
 </body>
 </html>
