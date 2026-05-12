@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARSLAN-ASH AI | Master Console v3.0</title>
+    <title>ARSLAN-ASH AI | Master Console v3.1</title>
     <style>
         body { 
             background: #000; 
@@ -15,7 +15,6 @@
             justify-content: center; 
             height: 100vh; 
             margin: 0; 
-            overflow: hidden;
         }
         .container { 
             border: 2px solid #0f0; 
@@ -23,19 +22,10 @@
             box-shadow: 0 0 25px #0f0; 
             border-radius: 15px; 
             width: 90%; 
-            max-width: 650px; 
-            background: rgba(0, 20, 0, 0.9);
+            max-width: 600px; 
+            background: rgba(0, 10, 0, 0.9);
         }
-        h2 { 
-            text-align: center; 
-            text-transform: uppercase; 
-            letter-spacing: 4px; 
-            margin-bottom: 25px;
-            text-shadow: 0 0 10px #0f0;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
+        h2 { text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 25px; }
         input { 
             width: 100%; 
             padding: 15px; 
@@ -45,7 +35,7 @@
             outline: none; 
             box-sizing: border-box; 
             font-size: 1.1em;
-            border-radius: 5px;
+            margin-bottom: 15px;
         }
         button { 
             width: 100%; 
@@ -56,30 +46,18 @@
             font-weight: bold; 
             cursor: pointer; 
             font-size: 1.1em;
-            text-transform: uppercase;
             transition: 0.3s;
         }
-        button:hover { 
-            background: #0c0; 
-            box-shadow: 0 0 20px #0f0; 
-        }
+        button:hover { background: #0c0; box-shadow: 0 0 20px #0f0; }
         #response-box { 
-            margin-top: 25px; 
-            border-top: 1px solid #0f0; 
-            padding-top: 15px; 
-            font-size: 1em; 
-            height: 250px; 
+            margin-top: 20px; 
+            border: 1px solid #333; 
+            padding: 15px; 
+            height: 200px; 
             overflow-y: auto; 
+            background: #050505; 
             color: #fff;
-            background: #050505;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .status-bar {
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #888;
-            text-align: center;
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -87,66 +65,47 @@
 
 <div class="container">
     <h2>ASH-AI MASTER CONSOLE</h2>
-    <div class="input-group">
-        <input type="text" id="masterCmd" placeholder="Hukam dein, Arslan bhai...">
-    </div>
-    <button onclick="triggerGemma()">EXECUTE VIA HDD TUNNEL</button>
-    
-    <div id="response-box">
-        [SYSTEM]: Neural Link Ready. Waiting for local tunnel signal...
-    </div>
-    <div class="status-bar">
-        NGROK TUNNEL: ACTIVE | HDD GEMMA-2: MONITORING
-    </div>
+    <input type="text" id="cmdInput" placeholder="Hukam dein, Arslan bhai...">
+    <button onclick="executeCommand()">EXECUTE COMMAND</button>
+    <div id="response-box">[SYSTEM]: Connected to Tunnel. Ready for Gemma-2...</div>
 </div>
 
 <script>
-    async function triggerGemma() {
-        const cmd = document.getElementById("masterCmd").value;
+    async function executeCommand() {
+        const cmd = document.getElementById("cmdInput").value;
         const resBox = document.getElementById("response-box");
-        
-        // --- AAPKA FIXED NGROK LINK ---
-        const NGROK_BASE_URL = "https://b691-39-50-229-101.ngrok-free.app"; 
-        
-        if (!cmd) return alert("Pehle kuch likhen toh sahi!");
 
-        resBox.innerHTML = "<span style='color: #888;'>[TRANSMITTING]: Sending command to D:\\USB-Uncensored-LLM...</span>";
+        // --- FIXED NGROK URL & ENDPOINT ---
+        const NGROK_URL = "https://b691-39-50-229-101.ngrok-free.app/v1/chat/completions"; 
+
+        if (!cmd) return alert("Kuch likho toh sahi!");
+
+        resBox.innerText = "[TRANSMITTING]: Sending to Portable AI (HDD)...";
 
         try {
-            const response = await fetch(`${NGROK_BASE_URL}/api/chat`, {
+            const response = await fetch(NGROK_URL, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: "gemma2",
+                    model: "gemma2-2b-local:latest", 
                     messages: [{ role: "user", content: cmd }],
                     stream: false
                 })
             });
 
-            if (!response.ok) throw new Error("Tunnel connection failed.");
-
             const data = await response.json();
             
-            // Response ko format karke dikhana
-            const aiReply = data.message.content;
-            resBox.innerText = "[GEMMA-2]:\n\n" + aiReply;
-            
-            // Input field saaf karna
-            document.getElementById("masterCmd").value = "";
+            // Format response according to your Portable AI structure
+            if (data.choices && data.choices[0].message) {
+                resBox.innerText = "[GEMMA-2]: " + data.choices[0].message.content;
+            } else {
+                resBox.innerText = "[ERROR]: Unexpected response format.";
+            }
 
         } catch (err) {
-            resBox.innerHTML = "<span style='color: #f00;'>[CRITICAL ERROR]: PC offline ya Ngrok tunnel band hai. Terminal check karein!</span>";
+            resBox.innerText = "[CRITICAL ERROR]: Connection failed. 1. Check Ngrok CMD. 2. Check Portable AI CMD.";
         }
     }
-
-    // Enter key se send karne ka function
-    document.getElementById("masterCmd").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") {
-            triggerGemma();
-        }
-    });
 </script>
 
 </body>
