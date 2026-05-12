@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARSLAN-ASH AI</title>
+    <title>ARSLAN-ASH AI | IMPERIAL GALAXY</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --neon-blue: #00f2ff; /* Diamond Blue */
-            --silver: #e0e0e0; 
-            --glass: rgba(255, 255, 255, 0.05); 
+            --crystal-blue: #00f2ff; 
+            --glass-lite: rgba(255, 255, 255, 0.03); 
+            --glass-border: rgba(0, 242, 255, 0.15);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Montserrat', sans-serif; color: #fff; }
@@ -17,115 +17,112 @@
         canvas { position: absolute; inset: 0; z-index: 1; cursor: move; }
 
         /* Arslan-Ash AI Header */
-        .logo-area { position: fixed; top: 30px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
-        .logo-area h1 { 
-            font-family: 'Cinzel', serif; 
-            font-size: 1.8rem; 
-            letter-spacing: 12px; 
-            color: var(--neon-blue); /* Updated Color */
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.6); 
-            text-transform: uppercase;
+        .header-nav { position: fixed; top: 25px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
+        .header-nav h1 { 
+            font-family: 'Cinzel', serif; font-size: 1.6rem; letter-spacing: 12px; 
+            color: var(--crystal-blue); text-shadow: 0 0 25px rgba(0, 242, 255, 0.5); text-transform: uppercase;
         }
 
-        /* Glass Sidebar */
-        .sidebar {
-            position: fixed; left: 20px; top: 100px; bottom: 120px; width: 350px;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(25px);
-            border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 20px;
-            z-index: 100; padding: 25px; display: flex; flex-direction: column;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 1);
+        /* Glass Panels System */
+        .panel {
+            position: fixed; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 20px; z-index: 100;
+            padding: 20px; display: flex; flex-direction: column; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
         }
+        .panel.hidden { opacity: 0; pointer-events: none; transform: scale(0.9); }
 
-        /* Execute Link Button */
-        .exec-btn { 
-            background: var(--neon-blue); /* Updated Color */
-            color: #000; 
-            border: none; 
-            padding: 0 35px; 
-            border-radius: 40px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            letter-spacing: 2px;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
-            transition: 0.3s ease;
+        .left-panel { left: 20px; top: 100px; bottom: 120px; width: 360px; }
+        .right-panel { right: 20px; top: 100px; width: 300px; height: 300px; }
+
+        /* Panel Toggle Switches */
+        .toggle-switch {
+            position: absolute; top: -15px; right: 20px; background: #000; border: 1px solid var(--crystal-blue);
+            width: 40px; height: 20px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; padding: 2px;
         }
-        .exec-btn:hover { 
-            background: #fff; 
-            box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
-            transform: scale(1.05);
-        }
+        .toggle-dot { width: 14px; height: 14px; background: var(--crystal-blue); border-radius: 50%; transition: 0.3s; }
+        .off .toggle-dot { transform: translateX(20px); background: #333; }
 
-        /* Sidebar UI Elements */
-        .viewport { width: 100%; height: 180px; background: rgba(0,0,0,0.8); border-radius: 15px; border: 1px solid rgba(0, 242, 255, 0.1); overflow: hidden; margin-bottom: 20px; position: relative; }
-        .view-tag { position: absolute; top: 10px; left: 10px; font-size: 0.5rem; color: var(--neon-blue); letter-spacing: 2px; }
-        #terminal { flex-grow: 1; overflow-y: auto; scrollbar-width: none; font-size: 0.85rem; color: #fff; }
-        .msg { margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
-        .user-tag { color: var(--neon-blue); font-size: 0.6rem; letter-spacing: 2px; display: block; margin-bottom: 3px; }
+        /* Telemetry & Chat */
+        .viewport { width: 100%; height: 200px; background: #000; border-radius: 15px; border: 1px solid var(--glass-border); overflow: hidden; margin-top: 10px; }
+        #pc-view { width: 100%; height: 100%; object-fit: cover; display: none; }
+        
+        #terminal { flex-grow: 1; overflow-y: auto; scrollbar-width: none; margin-top: 15px; font-size: 0.85rem; color: #fff; }
+        .msg { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .label { color: var(--crystal-blue); font-size: 0.6rem; letter-spacing: 2px; display: block; margin-bottom: 5px; }
 
-        /* Input Bar */
-        .input-box {
+        /* Executive Input Bar */
+        .input-container {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 800px; z-index: 100;
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px;
-            display: flex; padding: 8px;
+            width: 90%; max-width: 900px; z-index: 100;
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border); border-radius: 50px;
+            display: flex; padding: 10px;
         }
-        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 12px 25px; outline: none; font-size: 1rem; }
+        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 12px 30px; outline: none; font-size: 1rem; }
+        .run-btn { 
+            background: var(--crystal-blue); color: #000; border: none; padding: 0 40px; 
+            border-radius: 40px; cursor: pointer; font-weight: bold; letter-spacing: 2px;
+            transition: 0.3s; box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+        .run-btn:hover { background: #fff; box-shadow: 0 0 30px #fff; transform: scale(1.05); }
 
-        .toggle-tab { position: fixed; left: 0; top: 50%; width: 30px; height: 60px; background: var(--neon-blue); z-index: 110; border-radius: 0 10px 10px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<canvas id="galaxy"></canvas>
+<canvas id="nebula"></canvas>
 
-<div class="logo-area"><h1>ARSLAN-ASH AI</h1></div>
+<div class="header-nav"><h1>ARSLAN-ASH AI</h1></div>
 
-<div class="toggle-tab" onclick="toggleUI()">❯</div>
-
-<div class="sidebar" id="sidebar">
-    <div class="viewport">
-        <span class="view-tag">LIVE_TELEMETRY</span>
-        <img id="pc-screen" src="" style="width:100%; display:none;">
-        <div id="no-sig" style="display:flex; height:100%; align-items:center; justify-content:center; color:#222; font-size:0.6rem;">LINK_IDLE</div>
-    </div>
+<div class="panel left-panel" id="panel-left">
+    <div class="toggle-switch" onclick="hidePanel('panel-left', this)"><div class="toggle-dot"></div></div>
+    <span class="label">HISTORY_LOG V5.0</span>
     <div id="terminal">
-        <div class="msg"><span class="user-tag">SYSTEM</span>Neural Galaxy Map Initialized.</div>
+        <div class="msg"><span class="label">STATUS</span>Neural Core Synced. Imperial Galaxy Map Live.</div>
     </div>
 </div>
 
-<div class="input-box">
-    <input type="text" id="cmd" placeholder="Execute Neural Link..." autocomplete="off">
-    <button class="exec-btn" onclick="execute()">RUN</button>
+<div class="panel right-panel" id="panel-right">
+    <div class="toggle-switch" onclick="hidePanel('panel-right', this)"><div class="toggle-dot"></div></div>
+    <span class="label">LIVE_TELEMETRY</span>
+    <div class="viewport">
+        <img id="pc-view" src="">
+        <div id="no-sig" style="display:flex; height:100%; align-items:center; justify-content:center; color:#222; font-size:0.6rem; letter-spacing:3px;">LINK_IDLE</div>
+    </div>
+</div>
+
+<div class="input-container">
+    <input type="text" id="cmd" placeholder="Execute System Link..." autocomplete="off">
+    <button class="run-btn" onclick="execute()">RUN</button>
 </div>
 
 <script>
     const DB = "https://sh-controller-default-rtdb.firebaseio.com/";
-    const canvas = document.getElementById('galaxy');
+    const canvas = document.getElementById('nebula');
     const ctx = canvas.getContext('2d');
-    let stars = [], scale = 1, rotation = 0;
+    let stars = [], scale = 1, rotation = 0, mouse = {x:0, y:0};
 
     function init() {
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         stars = [];
-        // Creating a Spiral Galaxy with Smoky effect
-        for(let i=0; i<1000; i++) {
-            let arm = i % 3;
-            let angle = (i / 1000) * Math.PI * 4 + (arm * (Math.PI * 2 / 3));
-            let dist = Math.pow(Math.random(), 0.5) * 500;
+        for(let i=0; i<1200; i++) {
+            let arm = i % 4;
+            let angle = (i / 1200) * Math.PI * 6 + (arm * (Math.PI * 2 / 4));
+            let dist = Math.pow(Math.random(), 0.6) * 600;
             stars.push({
-                a: angle + (Math.random() * 0.5), 
+                a: angle + (Math.random() * 0.4), 
                 d: dist, 
-                s: Math.random() * 2,
-                v: 0.0005 + (0.001 * (1 - dist/500)),
-                c: i % 15 === 0 ? '#00f2ff' : '#ffffff',
-                o: Math.random()
+                s: Math.random() * 1.8,
+                v: 0.0003 + (0.0008 * (1 - dist/600)),
+                c: i % 12 === 0 ? '#00f2ff' : '#ffffff'
             });
         }
     }
 
     function draw() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Motion blur for smoke effect
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; // Smoky effect trail
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.save();
@@ -136,57 +133,63 @@
         stars.forEach(s => {
             s.a += s.v;
             let x = Math.cos(s.a) * s.d;
-            let y = Math.sin(s.a) * s.d * 0.5; // Flattened spiral
+            let y = Math.sin(s.a) * s.d * 0.45; // Oval spiral
             
-            ctx.globalAlpha = s.o;
             ctx.fillStyle = s.c;
             ctx.beginPath();
             ctx.arc(x, y, s.s, 0, Math.PI*2);
             ctx.fill();
-            
-            // Subtle gas cloud lines
-            if(s.d < 200 && Math.random() > 0.98) {
-                ctx.strokeStyle = 'rgba(0, 242, 255, 0.02)';
-                ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(0,0); ctx.stroke();
+
+            // Interactivity: Neural Snap
+            let dx = (mouse.x - canvas.width/2) - x;
+            let dy = (mouse.y - canvas.height/2) - y;
+            if(Math.sqrt(dx*dx + dy*dy) < 100) {
+                ctx.strokeStyle = 'rgba(0, 242, 255, 0.08)';
+                ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(dx,dy); ctx.stroke();
             }
         });
         ctx.restore();
-        rotation += 0.0002; // Slow rotation
+        rotation += 0.00015; // Realistic slow rotation
         requestAnimationFrame(draw);
     }
 
-    // Zooming logic
-    window.addEventListener('wheel', e => { 
-        scale += e.deltaY * -0.001; 
-        scale = Math.max(0.2, Math.min(scale, 100)); 
-    });
-
-    function toggleUI() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    // Zoom & Motion
+    window.addEventListener('wheel', e => { scale += e.deltaY * -0.0008; scale = Math.max(0.3, Math.min(scale, 80)); });
+    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    
+    function hidePanel(id, btn) {
+        document.getElementById(id).classList.toggle('hidden');
+        btn.classList.toggle('off');
+    }
 
     async function execute() {
         const inp = document.getElementById('cmd');
         const val = inp.value.trim(); if(!val) return;
         const ts = Date.now();
-        document.getElementById('terminal').innerHTML += `<div class="msg"><span class="user-tag">REQ</span>${val}</div>`;
+        const term = document.getElementById('terminal');
+        term.innerHTML += `<div class="msg"><span class="label">REQUEST</span>${val}</div>`;
         inp.value = "";
+        term.scrollTop = 99999;
         
         await fetch(`${DB}current.json`, { method: "PUT", body: JSON.stringify({ cmd: val, time: ts, resp: "PENDING", img: "" }) });
         
         const poll = setInterval(async () => {
             const r = await fetch(`${DB}current.json`).then(d => d.json());
             if(r.time == ts && r.resp !== "PENDING") {
-                document.getElementById('terminal').innerHTML += `<div class="msg"><span class="user-tag" style="color:#fff">AI</span>${r.resp}</div>`;
+                term.innerHTML += `<div class="msg"><span class="label" style="color:#fff">SYSTEM_RESPONSE</span>${r.resp}</div>`;
                 if(r.img) {
-                    const screen = document.getElementById('pc-screen');
+                    const screen = document.getElementById('pc-view');
                     screen.src = r.img; screen.style.display = 'block';
                     document.getElementById('no-sig').style.display = 'none';
                 }
+                term.scrollTop = 99999;
                 clearInterval(poll);
             }
         }, 1000);
     }
 
     init(); draw();
+    window.onresize = init;
 </script>
 </body>
 </html>
