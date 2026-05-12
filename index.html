@@ -3,70 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARSLAN-ASH AI | SECURE CORE</title>
+    <title>ARSLAN-ASH AI | VOID CORE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #00ffcc; --bg: #000; }
+        :root { --neon: #00ffcc; --dark: #050505; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; width: 100%; overflow: hidden; font-family: 'Share Tech Mono', monospace; background: #000; color: white; }
+        body, html { height: 100%; width: 100%; overflow: hidden; background: #000; color: #fff; font-family: 'Share Tech Mono', monospace; }
         #vanta-canvas { position: absolute; width: 100%; height: 100%; z-index: 1; }
         
-        /* Auth Screen */
         #auth-screen { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; justify-content: center; align-items: center; }
-        .auth-box { width: 300px; padding: 30px; border: 1px solid var(--neon); background: rgba(0,20,20,0.8); text-align: center; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
-        
-        /* Main Layout */
-        .app-container { position: relative; z-index: 10; display: flex; height: 100vh; width: 100vw; opacity: 0; transition: 1s; }
-        
-        /* Sidebar History */
-        .sidebar { width: 260px; background: rgba(2, 8, 8, 0.9); border-right: 1px solid rgba(0, 255, 204, 0.2); padding: 20px; display: flex; flex-direction: column; backdrop-filter: blur(10px); }
-        .history-list { flex-grow: 1; overflow-y: auto; margin-top: 20px; }
-        .history-item { padding: 10px; border: 1px solid rgba(0,255,204,0.1); margin-bottom: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .history-item:hover { background: rgba(0,255,204,0.1); border-color: var(--neon); }
-        .new-chat-btn { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+        .auth-box { width: 320px; padding: 40px; border-bottom: 2px solid var(--neon); background: rgba(10,10,10,0.9); text-align: center; }
 
-        /* Chat Area */
-        .chat-main { flex-grow: 1; display: flex; flex-direction: column; padding: 40px; justify-content: center; align-items: center; }
-        .core-panel { width: 100%; max-width: 700px; background: rgba(2, 8, 8, 0.85); border: 1px solid rgba(0, 255, 204, 0.15); border-top: 3px solid var(--neon); padding: 30px; clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
-        #terminal { height: 350px; overflow-y: auto; background: rgba(0, 0, 0, 0.4); padding: 15px; border: 1px solid rgba(0, 255, 204, 0.05); margin-bottom: 20px; font-size: 0.9rem; scrollbar-width: none; }
-        .input-area { display: flex; gap: 10px; }
-        input { flex-grow: 1; background: rgba(0,255,204,0.03); border: 1px solid rgba(0,255,204,0.2); padding: 15px; color: #fff; outline: none; font-family: 'Share Tech Mono'; }
-        .run-btn { background: var(--neon); color: #000; border: none; padding: 0 25px; cursor: pointer; font-weight: 700; clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%); }
+        .app-container { position: relative; z-index: 10; display: flex; height: 100vh; opacity: 0; transition: 1.5s; }
         
-        .entry { margin-bottom: 10px; animation: fadeIn 0.3s; }
-        .sys-label { color: var(--neon); font-weight: bold; }
-        .user-label { color: #555; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .sidebar { width: 280px; background: rgba(5, 5, 5, 0.95); border-right: 1px solid rgba(0, 255, 204, 0.1); padding: 25px; display: flex; flex-direction: column; }
+        .history-list { flex-grow: 1; overflow-y: auto; margin-top: 20px; scrollbar-width: none; }
+        .history-item { padding: 12px; border-left: 2px solid transparent; margin-bottom: 10px; cursor: pointer; font-size: 0.8rem; color: #666; transition: 0.3s; }
+        .history-item:hover { color: var(--neon); border-left: 2px solid var(--neon); background: rgba(0,255,204,0.02); }
+
+        .chat-main { flex-grow: 1; display: flex; flex-direction: column; padding: 50px; background: radial-gradient(circle at center, rgba(0,255,204,0.02) 0%, transparent 70%); }
+        .core-panel { width: 100%; max-width: 800px; margin: auto; }
+        #terminal { height: 400px; overflow-y: auto; margin-bottom: 30px; font-size: 1rem; line-height: 1.8; scrollbar-width: none; }
+        
+        .entry { margin-bottom: 15px; }
+        .sys-label { color: var(--neon); margin-right: 10px; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px; }
+        .user-label { color: #333; margin-right: 10px; }
+
+        .input-group { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; transition: 0.3s; }
+        .input-group:focus-within { border-bottom: 1px solid var(--neon); }
+        input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 10px; font-size: 1.1rem; outline: none; font-family: 'Share Tech Mono'; }
+        .run-btn { background: transparent; border: none; color: var(--neon); font-family: 'Share Tech Mono'; cursor: pointer; letter-spacing: 2px; font-weight: bold; }
     </style>
 </head>
 <body id="vanta-canvas">
 
 <div id="auth-screen">
     <div class="auth-box">
-        <h2 style="color: var(--neon); margin-bottom: 20px; font-size: 0.9rem;">ACCESS CONTROL</h2>
-        <input type="password" id="sys-pass" placeholder="PASSWORD" style="width: 100%; margin-bottom: 15px; text-align: center;">
-        <button class="new-chat-btn" onclick="unlock()">INITIALIZE</button>
+        <input type="password" id="sys-pass" placeholder="KEY_CODE" style="width: 100%; background: transparent; border: 1px solid #222; padding: 15px; color: var(--neon); text-align: center; outline: none; margin-bottom: 20px;">
+        <button onclick="unlock()" style="background: var(--neon); color: #000; border: none; padding: 10px 30px; font-weight: bold; cursor: pointer;">ACCESS</button>
     </div>
 </div>
 
 <div class="app-container" id="main-app">
     <div class="sidebar">
-        <h2 style="font-size: 0.8rem; color: var(--neon); letter-spacing: 2px;">HISTORY LOG</h2>
-        <div id="date-now" style="font-size: 0.6rem; color: #444; margin-bottom: 15px;"></div>
-        <button class="new-chat-btn" onclick="newChat()">+ NEW SESSION</button>
+        <h2 style="font-size: 0.7rem; letter-spacing: 4px; color: var(--neon);">VOID_LOG</h2>
+        <div id="date-now" style="font-size: 0.6rem; color: #333; margin-top: 5px;"></div>
         <div class="history-list" id="history-items"></div>
     </div>
-
     <div class="chat-main">
         <div class="core-panel">
-            <div id="terminal">
-                <div class="entry"><span class="sys-label">[SYSTEM]:</span> Neural link synchronized. History loaded.</div>
-            </div>
-            <div class="input-area">
-                <input type="text" id="userInput" placeholder="COMMAND / INQUIRY..." autocomplete="off">
-                <button class="run-btn" onclick="execute()">RUN</button>
+            <div id="terminal"></div>
+            <div class="input-group">
+                <input type="text" id="userInput" placeholder="COMMAND_ENTRY..." autocomplete="off">
+                <button class="run-btn" onclick="execute()">EXECUTE</button>
             </div>
         </div>
     </div>
@@ -74,41 +65,43 @@
 
 <script>
     const DB_URL = "https://sh-controller-default-rtdb.firebaseio.com/";
-    const ADMIN_PASS = "MyHome@123"; // Apka password
-
-    VANTA.NET({ el: "#vanta-canvas", mouseControls: true, touchControls: true, color: 0x00ffcc, backgroundColor: 0x0, points: 12.0 });
+    VANTA.NET({ el: "#vanta-canvas", mouseControls: true, touchControls: true, color: 0x00ffcc, backgroundColor: 0x0, points: 10.0, maxDistance: 20.0, spacing: 18.0 });
 
     function unlock() {
-        if(document.getElementById('sys-pass').value === ADMIN_PASS) {
+        if(document.getElementById('sys-pass').value === "MyHome@123") {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.opacity = '1';
             loadHistory();
             document.getElementById('date-now').innerText = new Date().toDateString().toUpperCase();
-        } else { alert("ACCESS DENIED"); }
+        }
     }
 
     async function execute() {
         const input = document.getElementById('userInput');
         const val = input.value.trim();
         if(!val) return;
-
-        const timestamp = Date.now();
-        const chatEntry = { command: val, time: timestamp, response: "analyzing..." };
-
-        // Save to History & Trigger PC
-        await fetch(`${DB_URL}history/${timestamp}.json`, { method: "PUT", body: JSON.stringify(chatEntry) });
-        await fetch(`${DB_URL}current.json`, { method: "PUT", body: JSON.stringify(chatEntry) });
+        const ts = Date.now();
+        const entry = { command: val, time: ts, response: "..." };
+        await fetch(`${DB_URL}current.json`, { method: "PUT", body: JSON.stringify(entry) });
+        await fetch(`${DB_URL}history/${ts}.json`, { method: "PUT", body: JSON.stringify(entry) });
         
-        appendMessage(">>", val, "user-label");
+        const term = document.getElementById('terminal');
+        term.innerHTML += `<div class="entry"><span class="user-label">USER_REQ:</span> ${val}</div>`;
         input.value = "";
-        pollResponse(timestamp);
-        loadHistory();
+        poll(ts);
     }
 
-    function appendMessage(label, text, className) {
-        const term = document.getElementById('terminal');
-        term.innerHTML += `<div class="entry"><span class="${className}">${label}</span> ${text}</div>`;
-        term.scrollTop = term.scrollHeight;
+    async function poll(ts) {
+        const inter = setInterval(async () => {
+            const res = await fetch(`${DB_URL}current.json`);
+            const data = await res.json();
+            if(data.time == ts && data.response !== "...") {
+                document.getElementById('terminal').innerHTML += `<div class="entry"><span class="sys-label">CORE_RESP:</span> ${data.response}</div>`;
+                document.getElementById('terminal').scrollTop = 9999;
+                loadHistory();
+                clearInterval(inter);
+            }
+        }, 1000);
     }
 
     async function loadHistory() {
@@ -117,30 +110,15 @@
         const list = document.getElementById('history-items');
         list.innerHTML = "";
         if(data) {
-            Object.keys(data).reverse().forEach(key => {
+            Object.keys(data).reverse().slice(0, 10).forEach(k => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
-                item.innerText = data[key].command;
-                item.onclick = () => {
-                    document.getElementById('terminal').innerHTML = `<div class="entry"><span class="sys-label">[ARCHIVE]:</span> ${data[key].response}</div>`;
-                };
+                item.innerText = data[k].command;
                 list.appendChild(item);
             });
         }
     }
-
-    function pollResponse(ts) {
-        const inter = setInterval(async () => {
-            const res = await fetch(`${DB_URL}current.json`);
-            const data = await res.json();
-            if(data.time == ts && data.response !== "analyzing...") {
-                appendMessage("[ARSLAN-ASH AI]:", data.response, "sys-label");
-                clearInterval(inter);
-            }
-        }, 1000);
-    }
-
-    function newChat() { document.getElementById('terminal').innerHTML = `<div class="entry"><span class="sys-label">[SYSTEM]:</span> New session initialized.</div>`; }
+    document.getElementById('userInput').addEventListener('keypress', e => e.key === 'Enter' && execute());
 </script>
 </body>
 </html>
